@@ -1,0 +1,52 @@
+{% extends "notifications/base_email.html" %}
+{% block subject %}Welcome to Campus Health & Wellness{% endblock %}
+
+{% block body %}
+<p class="greeting">Welcome, {{ user.first_name }}!</p>
+
+<p>
+  Your Campus Health &amp; Wellness account has been created successfully.
+  You now have access to all student health services on campus.
+</p>
+
+<div class="info-box">
+  <table>
+    <tr>
+      <td>Full Name</td>
+      <td>{{ user.get_full_name }}</td>
+    </tr>
+    <tr>
+      <td>Username</td>
+      <td>{{ user.username }}</td>
+    </tr>
+    <tr>
+      <td>Matric Number</td>
+      <td>{{ user.matric_number|default:"Not set yet" }}</td>
+    </tr>
+    <tr>
+      <td>Department</td>
+      <td>{{ user.department|default:"Not set yet" }}</td>
+    </tr>
+  </table>
+</div>
+
+<p>Here's what you can do with your account:</p>
+<ul style="color:#495057;padding-left:20px;margin-bottom:14px;">
+  <li style="margin-bottom:6px;">Book appointments with campus medical staff</li>
+  <li style="margin-bottom:6px;">View your health records and prescriptions</li>
+  <li style="margin-bottom:6px;">Track your daily wellness and mental health</li>
+  <li style="margin-bottom:6px;">Set wellness goals and monitor your progress</li>
+</ul>
+
+<div class="alert alert-warning">
+  <strong>Action needed:</strong> Please complete your medical profile
+  (blood group, allergies, emergency contacts) so staff can provide
+  the best care in case of an emergency.
+</div>
+
+<div class="btn-container">
+  <a href="http://127.0.0.1:8000/profile/medical/" class="btn">
+    Complete Your Profile
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "notifications/base_email.html" %}
+{% block subject %}Appointment Booked — {{ appointment.get_appointment_type_display }}{% endblock %}
+
+{% block body %}
+<p class="greeting">Appointment Received</p>
+
+<p>
+  Hi {{ appointment.student.first_name }}, your appointment request has been
+  received and is currently <strong>pending confirmation</strong>. A member
+  of medical staff will review and confirm it shortly.
+</p>
+
+<div class="info-box">
+  <table>
+    <tr>
+      <td>Type</td>
+      <td>{{ appointment.get_appointment_type_display }}</td>
+    </tr>
+    <tr>
+      <td>Date</td>
+      <td>{{ appointment.date|date:"l, d F Y" }}</td>
+    </tr>
+    <tr>
+      <td>Time</td>
+      <td>{{ appointment.time|time:"H:i" }}</td>
+    </tr>
+    <tr>
+      <td>Priority</td>
+      <td>{{ appointment.get_priority_display }}</td>
+    </tr>
+    <tr>
+      <td>Doctor / Staff</td>
+      <td>{{ appointment.staff.get_full_name|default:"To be assigned" }}</td>
+    </tr>
+    <tr>
+      <td>Status</td>
+      <td>Pending Confirmation</td>
+    </tr>
+  </table>
+</div>
+
+<div class="alert alert-info">
+  <strong>What happens next?</strong> The admin will assign a doctor and
+  confirm your appointment. You will receive another email once confirmed.
+</div>
+
+<p>
+  <strong>Reason you provided:</strong><br>
+  {{ appointment.reason }}
+</p>
+
+<div class="btn-container">
+  <a href="http://127.0.0.1:8000/appointments/{{ appointment.pk }}/" class="btn">
+    View Appointment
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Wellness Goals{% endblock %}
+{% block page_title %}My Wellness Goals{% endblock %}
+{% block content %}
+<div class="row g-4">
+
+  <!-- Add goal form -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-plus-circle me-2"></i>Add New Goal
+      </div>
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% for field in form %}
+          {% if field.name != 'is_achieved' %}
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="text-danger small">{{ field.errors.0 }}</div>{% endif %}
+          </div>
+          {% endif %}
+          {% endfor %}
+          <button type="submit" class="btn btn-success w-100">Add Goal</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goals lists -->
+  <div class="col-lg-8">
+
+    <!-- Active -->
+    <div class="card mb-4">
+      <div class="card-header fw-semibold d-flex justify-content-between">
+        <span><i class="bi bi-trophy me-2"></i>Active Goals</span>
+        <span class="badge bg-primary">{{ active.count }}</span>
+      </div>
+      {% if active %}
+      <div class="list-group list-group-flush">
+        {% for goal in active %}
+        <div class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+          <div>
+            <div class="fw-semibold">{{ goal.title }}</div>
+            <div class="text-muted small">
+              {{ goal.get_category_display }}
+              {% if goal.target_date %}
+              &nbsp;·&nbsp; Target: {{ goal.target_date|date:"d M Y" }}
+              {% endif %}
+            </div>
+            {% if goal.description %}<div class="text-muted small mt-1">{{ goal.description }}</div>{% endif %}
+          </div>
+          <div class="d-flex gap-1">
+            <form method="post" action="{% url 'toggle_goal' goal.pk %}">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-success" title="Mark as achieved">
+                <i class="bi bi-check-lg"></i>
+              </button>
+            </form>
+            <form method="post" action="{% url 'delete_goal' goal.pk %}"
+                  onsubmit="return confirm('Delete this goal?')">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="card-body text-center py-4 text-muted small">
+        No active goals. Add one to get started!
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Achieved -->
+    {% if achieved %}
+    <div class="card">
+      <div class="card-header fw-semibold text-success d-flex justify-content-between">
+        <span><i class="bi bi-check-circle-fill me-2"></i>Achieved</span>
+        <span class="badge bg-success">{{ achieved.count }}</span>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for goal in achieved %}
+        <div class="list-group-item d-flex justify-content-between align-items-center px-4 py-2">
+          <div>
+            <div class="fw-semibold text-decoration-line-through text-muted">{{ goal.title }}</div>
+            <div class="text-muted" style="font-size:.75rem;">{{ goal.get_category_display }}</div>
+          </div>
+          <div class="d-flex gap-1">
+            <form method="post" action="{% url 'toggle_goal' goal.pk %}">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-secondary" title="Mark as not achieved">
+                <i class="bi bi-arrow-counterclockwise"></i>
+              </button>
+            </form>
+            <form method="post" action="{% url 'delete_goal' goal.pk %}" onsubmit="return confirm('Delete?')">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

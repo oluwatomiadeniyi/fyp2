@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Appointments — Campus Health{% endblock %}
+{% block page_title %}Appointments{% endblock %}
+
+{% block content %}
+
+<!-- Status tabs -->
+<ul class="nav nav-tabs mb-4">
+  {% for val, label in status_choices %}
+  <li class="nav-item">
+    <a class="nav-link {% if status == val %}active{% endif %}"
+       href="?status={{ val }}">
+      {{ label }}
+      {% if val == 'pending' and counts.pending %}
+        <span class="badge bg-warning text-dark ms-1">{{ counts.pending }}</span>
+      {% elif val == 'confirmed' and counts.confirmed %}
+        <span class="badge bg-primary ms-1">{{ counts.confirmed }}</span>
+      {% endif %}
+    </a>
+  </li>
+  {% endfor %}
+  <li class="nav-item">
+    <a class="nav-link {% if not status %}active{% endif %}" href="?">
+      All <span class="badge bg-secondary ms-1">{{ counts.all }}</span>
+    </a>
+  </li>
+</ul>
+
+<!-- Filters + actions -->
+<div class="card mb-4">
+  <div class="card-body py-2">
+    <form method="get" class="row g-2 align-items-end">
+      <input type="hidden" name="status" value="{{ status }}">
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Type</label>
+        <select name="type" class="form-select form-select-sm">
+          <option value="">All types</option>
+          {% for val, label in type_choices %}
+          <option value="{{ val }}" {% if atype == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Date</label>
+        <input type="date" name="date" value="{{ date_q }}" class="form-control form-control-sm">
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-sm btn-outline-secondary w-100">Filter</button>
+      </div>
+      <div class="col-md-3 text-end">
+        {% if user.is_student %}
+        <a href="{% url 'book_appointment' %}" class="btn btn-sm btn-success">
+          <i class="bi bi-calendar-plus me-1"></i>Book Appointment
+        </a>
+        {% endif %}
+        {% if user.is_medical_staff or user.is_admin_user %}
+        <a href="{% url 'today_appointments' %}" class="btn btn-sm btn-outline-primary ms-1">
+          <i class="bi bi-calendar-day me-1"></i>Today's Schedule
+        </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          {% if not user.is_student %}<th>Student</th>{% endif %}
+          {% if not user.is_medical_staff %}<th>Doctor / Staff</th>{% endif %}
+          <th>Type</th>
+          <th>Date & Time</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appt in page_obj %}
+        <tr>
+          {% if not user.is_student %}
+          <td>
+            <div class="fw-semibold small">{{ appt.student.get_full_name }}</div>
+            <div class="text-muted" style="font-size:.75rem;">{{ appt.student.matric_number }}</div>
+          </td>
+          {% endif %}
+          {% if not user.is_medical_staff %}
+          <td class="small">
+            {% if appt.staff %}{{ appt.staff.get_full_name }}
+            {% else %}<span class="text-muted">Unassigned</span>{% endif %}
+          </td>
+          {% endif %}
+          <td class="small">{{ appt.get_appointment_type_display }}</td>
+          <td>
+            <div class="small fw-semibold">{{ appt.date|date:"d M Y" }}</div>
+            <div class="text-muted" style="font-size:.75rem;">{{ appt.time|time:"H:i" }}</div>
+          </td>
+          <td>
+            <span class="badge bg-{{ appt.get_priority_badge_class }}">
+              {{ appt.get_priority_display }}
+            </span>
+          </td>
+          <td>
+            <span class="badge bg-{{ appt.get_status_badge_class }}">
+              {{ appt.get_status_display }}
+            </span>
+          </td>
+          <td>
+            <div class="d-flex gap-1 flex-wrap">
+              <a href="{% url 'appointment_detail' appt.pk %}"
+                 class="btn btn-xs btn-outline-secondary" style="font-size:.75rem;padding:.2rem .6rem;">
+                View
+              </a>
+              {% if user.is_medical_staff and appt.status == 'pending' %}
+              <form method="post" action="{% url 'quick_confirm' appt.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-xs btn-outline-success" style="font-size:.75rem;padding:.2rem .6rem;">
+                  Confirm
+                </button>
+              </form>
+              {% endif %}
+              {% if user.is_student and appt.status in 'pending,confirmed' %}
+              <a href="{% url 'cancel_appointment' appt.pk %}"
+                 class="btn btn-xs btn-outline-danger" style="font-size:.75rem;padding:.2rem .6rem;">
+                Cancel
+              </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center py-5 text-muted">
+            <i class="bi bi-calendar-x display-4 d-block mb-2 opacity-25"></i>
+            No appointments found.
+            {% if user.is_student %}
+            <a href="{% url 'book_appointment' %}" class="d-block mt-2">Book one now &rarr;</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div class="card-footer">
+    <nav>
+      <ul class="pagination pagination-sm mb-0 justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status }}&type={{ atype }}&date={{ date_q }}">
+            &laquo;
+          </a>
+        </li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+          <a class="page-link" href="?page={{ num }}&status={{ status }}&type={{ atype }}&date={{ date_q }}">
+            {{ num }}
+          </a>
+        </li>
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status }}&type={{ atype }}&date={{ date_q }}">
+            &raquo;
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

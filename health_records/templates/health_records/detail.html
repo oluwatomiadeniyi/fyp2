@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% block title %}Health Record — {{ record.student.get_full_name }}{% endblock %}
+{% block page_title %}Health Record{% endblock %}
+
+{% block content %}
+<!-- Action buttons -->
+<div class="d-flex gap-2 mb-4 flex-wrap">
+  <a href="{% url 'record_list' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Back
+  </a>
+  {% if user.is_medical_staff or user.is_admin_user %}
+  <a href="{% url 'edit_record' record.pk %}" class="btn btn-sm btn-primary">
+    <i class="bi bi-pencil me-1"></i>Edit Record
+  </a>
+  <a href="{% url 'upload_document' record.pk %}" class="btn btn-sm btn-outline-primary">
+    <i class="bi bi-paperclip me-1"></i>Attach Document
+  </a>
+  <a href="{% url 'student_history' record.student.pk %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-clock-history me-1"></i>Full History
+  </a>
+  <a href="{% url 'delete_record' record.pk %}" class="btn btn-sm btn-outline-danger ms-auto">
+    <i class="bi bi-trash me-1"></i>Delete
+  </a>
+  {% endif %}
+</div>
+
+<!-- Header -->
+<div class="card mb-4">
+  <div class="card-body p-4">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <h5 class="fw-bold mb-1">{{ record.get_visit_type_display }}</h5>
+        <p class="text-muted mb-2">
+          <i class="bi bi-calendar3 me-1"></i>{{ record.visit_date|date:"l, d F Y" }}
+          {% if record.attending_staff %}
+          &nbsp;·&nbsp;<i class="bi bi-person-badge me-1"></i>{{ record.attending_staff.get_full_name }}
+          {% endif %}
+          {% if record.appointment %}
+          &nbsp;·&nbsp;<a href="{% url 'appointment_detail' record.appointment.pk %}" class="small">
+            Linked appointment
+          </a>
+          {% endif %}
+        </p>
+        <span class="badge bg-{{ record.get_outcome_badge_class }} px-3">
+          {{ record.get_outcome_display }}
+        </span>
+        {% if record.is_confidential and not user.is_student %}
+        <span class="badge bg-dark ms-2">Confidential</span>
+        {% endif %}
+      </div>
+      {% if not user.is_student %}
+      <div class="col-md-6 text-md-end mt-3 mt-md-0">
+        <div class="d-flex align-items-center gap-3 justify-content-md-end">
+          {% if record.student.profile_photo %}
+          <img src="{{ record.student.profile_photo.url }}" class="rounded-circle"
+               style="width:48px;height:48px;object-fit:cover;" alt="">
+          {% else %}
+          <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+               style="width:48px;height:48px;background:#e1f5ee;color:#085041;font-size:1rem;">
+            {{ record.student.first_name|first|upper }}{{ record.student.last_name|first|upper }}
+          </div>
+          {% endif %}
+          <div class="text-start">
+            <a href="{% url 'student_detail' record.student.pk %}"
+               class="fw-semibold text-decoration-none">
+              {{ record.student.get_full_name }}
+            </a>
+            <div class="text-muted small">{{ record.student.matric_number }}</div>
+            <div class="text-muted small">{{ record.student.department }}</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- Vitals -->
+  {% if record.temperature_c or record.blood_pressure or record.pulse_rate or record.oxygen_saturation %}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header fw-semibold small">
+        <i class="bi bi-activity me-2"></i>Vital Signs
+      </div>
+      <div class="card-body">
+        <div class="row g-3 text-center">
+          {% if record.temperature_c %}
+          <div class="col-6 col-md-2">
+            <div class="p-3 rounded" style="background:#faeeda;">
+              <div class="fw-bold fs-5" style="color:#633806;">{{ record.temperature_c }}°C</div>
+              <div class="small text-muted">Temperature</div>
+            </div>
+          </div>
+          {% endif %}
+          {% if record.blood_pressure %}
+          <div class="col-6 col-md-2">
+            <div class="p-3 rounded" style="background:#fcebeb;">
+              <div class="fw-bold fs-5" style="color:#a32d2d;">{{ record.blood_pressure }}</div>
+              <div class="small text-muted">Blood Pressure</div>
+            </div>
+          </div>
+          {% endif %}
+          {% if record.pulse_rate %}
+          <div class="col-6 col-md-2">
+            <div class="p-3 rounded" style="background:#e6f1fb;">
+              <div class="fw-bold fs-5" style="color:#0c447c;">{{ record.pulse_rate }} bpm</div>
+              <div class="small text-muted">Pulse Rate</div>
+            </div>
+          </div>
+          {% endif %}
+          {% if record.respiratory_rate %}
+          <div class="col-6 col-md-2">
+            <div class="p-3 rounded" style="background:#eaf3de;">
+              <div class="fw-bold fs-5" style="color:#27500a;">{{ record.respiratory_rate }}/min</div>
+              <div class="small text-muted">Resp. Rate</div>
+            </div>
+          </div>
+          {% endif %}
+          {% if record.oxygen_saturation %}
+          <div class="col-6 col-md-2">
+            <div class="p-3 rounded" style="background:#e1f5ee;">
+              <div class="fw-bold fs-5" style="color:#085041;">{{ record.oxygen_saturation }}%</div>
+              <div class="small text-muted">SpO₂</div>
+            </div>
+          </div>
+          {% endif %}
+          {% if record.get_bmi %}
+          <div class="col-6 col-md-2">
+            <div class="p-3 rounded" style="background:#eeedfe;">
+              <div class="fw-bold fs-5" style="color:#3c3489;">{{ record.get_bmi }}</div>
+              <div class="small text-muted">BMI</div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Clinical notes -->
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header fw-semibold small">
+        <i class="bi bi-file-medical me-2"></i>Clinical Notes
+      </div>
+      <div class="card-body p-4">
+
+        {% if record.chief_complaint %}
+        <h6 class="text-muted small text-uppercase fw-bold mb-1">Chief Complaint</h6>
+        <p>{{ record.chief_complaint }}</p>
+        {% endif %}
+
+        {% if record.history %}
+        <h6 class="text-muted small text-uppercase fw-bold mb-1 mt-3">History</h6>
+        <p>{{ record.history }}</p>
+        {% endif %}
+
+        {% if record.examination %}
+        <h6 class="text-muted small text-uppercase fw-bold mb-1 mt-3">Examination Findings</h6>
+        <p>{{ record.examination }}</p>
+        {% endif %}
+
+        <h6 class="text-muted small text-uppercase fw-bold mb-1 mt-3">Diagnosis</h6>
+        <p class="fw-semibold">{{ record.diagnosis }}</p>
+
+        {% if record.treatment %}
+        <h6 class="text-muted small text-uppercase fw-bold mb-1 mt-3">Treatment / Management</h6>
+        <p>{{ record.treatment }}</p>
+        {% endif %}
+
+        {% if record.lab_results %}
+        <h6 class="text-muted small text-uppercase fw-bold mb-1 mt-3">Lab Results</h6>
+        <p style="white-space:pre-line;">{{ record.lab_results }}</p>
+        {% endif %}
+
+        {% if record.notes %}
+        <h6 class="text-muted small text-uppercase fw-bold mb-1 mt-3">Additional Notes</h6>
+        <p>{{ record.notes }}</p>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Right side: prescription + follow-up -->
+  <div class="col-lg-4">
+
+    {% if medications %}
+    <div class="card mb-4">
+      <div class="card-header fw-semibold small">
+        <i class="bi bi-capsule me-2"></i>Prescription
+      </div>
+      <div class="list-group list-group-flush">
+        {% for med in medications %}
+        <div class="list-group-item px-3 py-2">
+          <div class="fw-semibold small">{{ med.drug_name }} — {{ med.dosage }}</div>
+          <div class="text-muted" style="font-size:.78rem;">
+            {{ med.get_frequency_display }} &middot; {{ med.get_route_display }} &middot; {{ med.duration }}
+          </div>
+          {% if med.instructions %}
+          <div class="text-muted" style="font-size:.75rem;">{{ med.instructions }}</div>
+          {% endif %}
+          {% if med.dispensed %}
+          <span class="badge bg-success mt-1" style="font-size:.68rem;">Dispensed</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if record.follow_up_date or record.referred_to %}
+    <div class="card mb-4">
+      <div class="card-header fw-semibold small">
+        <i class="bi bi-arrow-up-right-circle me-2"></i>Next Steps
+      </div>
+      <div class="card-body small">
+        {% if record.follow_up_date %}
+        <div class="alert alert-info py-2 mb-2">
+          <i class="bi bi-calendar-event me-1"></i>
+          Follow-up: <strong>{{ record.follow_up_date|date:"d F Y" }}</strong>
+        </div>
+        {% endif %}
+        {% if record.referred_to %}
+        <div class="alert alert-warning py-2">
+          <i class="bi bi-arrow-right-circle me-1"></i>
+          Referred to: <strong>{{ record.referred_to }}</strong>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Documents -->
+    <div class="card">
+      <div class="card-header fw-semibold small d-flex justify-content-between">
+        <span><i class="bi bi-paperclip me-2"></i>Documents</span>
+        {% if user.is_medical_staff %}
+        <a href="{% url 'upload_document' record.pk %}" class="btn btn-sm btn-outline-primary" style="font-size:.75rem;padding:.2rem .6rem;">
+          Add
+        </a>
+        {% endif %}
+      </div>
+      {% if documents %}
+      <div class="list-group list-group-flush">
+        {% for doc in documents %}
+        <div class="list-group-item d-flex justify-content-between align-items-center px-3 py-2">
+          <div>
+            <div class="small fw-semibold">{{ doc.title }}</div>
+            <div class="text-muted" style="font-size:.75rem;">{{ doc.get_doc_type_display }}</div>
+          </div>
+          <div class="d-flex gap-1">
+            <a href="{{ doc.file.url }}" target="_blank"
+               class="btn btn-sm btn-outline-secondary" style="font-size:.75rem;padding:.2rem .5rem;">
+              Open
+            </a>
+            {% if user.is_medical_staff %}
+            <form method="post" action="{% url 'delete_document' doc.pk %}"
+                  onsubmit="return confirm('Remove this document?')">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger" style="font-size:.75rem;padding:.2rem .5rem;">
+                ×
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="card-body text-center py-3 text-muted small">No documents attached.</div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

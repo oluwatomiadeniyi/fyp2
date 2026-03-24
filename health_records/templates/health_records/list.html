@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Health Records{% endblock %}
+{% block page_title %}Health Records{% endblock %}
+
+{% block content %}
+
+<!-- Filters -->
+<div class="card mb-4">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      {% if not user.is_student %}
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Search</label>
+        {{ form.q }}
+      </div>
+      {% endif %}
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Visit Type</label>
+        {{ form.visit_type }}
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">From</label>
+        {{ form.date_from }}
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">To</label>
+        {{ form.date_to }}
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-outline-secondary w-100">
+          <i class="bi bi-search me-1"></i>Filter
+        </button>
+      </div>
+      {% if user.is_medical_staff or user.is_admin_user %}
+      <div class="col-md-2 text-end">
+        <a href="{% url 'create_record' %}" class="btn btn-success w-100">
+          <i class="bi bi-plus-lg me-1"></i>New Record
+        </a>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<!-- Records table -->
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-journal-medical me-2"></i>
+      {% if user.is_student %}My Health Records{% else %}All Health Records{% endif %}
+    </span>
+    <div class="d-flex gap-2">
+      {% if user.is_medical_staff %}
+      <a href="{% url 'vaccination_list' %}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-shield-plus me-1"></i>Vaccinations
+      </a>
+      {% endif %}
+      <span class="badge bg-secondary align-self-center">{{ page_obj.paginator.count }} record{{ page_obj.paginator.count|pluralize }}</span>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          {% if not user.is_student %}<th>Student</th>{% endif %}
+          <th>Date</th>
+          <th>Type</th>
+          <th>Diagnosis</th>
+          <th>Outcome</th>
+          {% if not user.is_student %}<th>Attending</th>{% endif %}
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in page_obj %}
+        <tr>
+          {% if not user.is_student %}
+          <td>
+            <div class="fw-semibold small">{{ record.student.get_full_name }}</div>
+            <div class="text-muted" style="font-size:.75rem;">{{ record.student.matric_number }}</div>
+          </td>
+          {% endif %}
+          <td class="small fw-semibold">{{ record.visit_date|date:"d M Y" }}</td>
+          <td>
+            <span class="badge bg-light text-dark border small">
+              {{ record.get_visit_type_display }}
+            </span>
+          </td>
+          <td class="small">{{ record.diagnosis|truncatechars:50 }}</td>
+          <td>
+            <span class="badge bg-{{ record.get_outcome_badge_class }}">
+              {{ record.get_outcome_display }}
+            </span>
+          </td>
+          {% if not user.is_student %}
+          <td class="small text-muted">
+            {{ record.attending_staff.get_full_name|default:"—" }}
+          </td>
+          {% endif %}
+          <td>
+            <a href="{% url 'record_detail' record.pk %}"
+               class="btn btn-sm btn-outline-secondary">View</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center py-5 text-muted">
+            <i class="bi bi-journal-x display-4 d-block mb-2 opacity-25"></i>
+            No health records found.
+            {% if user.is_medical_staff %}
+            <a href="{% url 'create_record' %}" class="d-block mt-2">Create the first one &rarr;</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="card-footer">
+    <nav>
+      <ul class="pagination pagination-sm mb-0 justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.visit_type %}&visit_type={{ request.GET.visit_type }}{% endif %}">
+            &laquo;
+          </a>
+        </li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+            &raquo;
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

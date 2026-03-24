@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Mental Health Assessment{% endblock %}
+{% block page_title %}PHQ-9 Mental Health Assessment{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-8">
+    <div class="alert alert-info d-flex gap-2 mb-4">
+      <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
+      <div class="small">
+        <strong>About this assessment:</strong> The PHQ-9 is a validated tool used by clinicians
+        to screen for depression. It is not a diagnosis. Your results are visible to campus
+        medical staff who can offer support. If you are in crisis, please visit the health centre
+        immediately or call emergency services.
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header fw-semibold">
+        Over the <strong>last 2 weeks</strong>, how often have you been bothered by the following?
+      </div>
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% for field in form %}
+          {% if field.name != 'notes' %}
+          <div class="mb-4 p-3 rounded" style="background:#f8f9fa;">
+            <p class="fw-semibold small mb-2">{{ forloop.counter }}. {{ field.label }}</p>
+            <div class="d-flex flex-wrap gap-3">
+              {% for val, label in field.field.choices %}
+              <div class="form-check">
+                <input class="form-check-input" type="radio"
+                       name="{{ field.html_name }}"
+                       id="{{ field.id_for_label }}_{{ val }}"
+                       value="{{ val }}"
+                       {% if field.value == val|stringformat:"s" %}checked{% endif %}>
+                <label class="form-check-label small" for="{{ field.id_for_label }}_{{ val }}">
+                  {{ label }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+            {% if field.errors %}
+            <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
+            {% endif %}
+          </div>
+          {% endif %}
+          {% endfor %}
+
+          <div class="mb-4">
+            <label class="form-label small fw-semibold">
+              Additional notes (optional)
+            </label>
+            {{ form.notes }}
+          </div>
+
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-send me-2"></i>Submit Assessment
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Past assessments -->
+  <div class="col-lg-4">
+    {% if past %}
+    <div class="card">
+      <div class="card-header small fw-semibold">
+        <i class="bi bi-clock-history me-2"></i>Previous Assessments
+      </div>
+      <div class="list-group list-group-flush">
+        {% for a in past %}
+        {% with a.severity as sev %}
+        <a href="{% url 'mh_result' a.pk %}"
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 px-3">
+          <div>
+            <div class="small fw-semibold">{{ a.date|date:"d M Y" }}</div>
+            <div class="text-muted" style="font-size:.74rem;">Score: {{ a.total_score }}/27</div>
+          </div>
+          <span class="badge bg-{{ sev.1 }}">{{ sev.0 }}</span>
+        </a>
+        {% endwith %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

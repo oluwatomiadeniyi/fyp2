@@ -1,0 +1,78 @@
+{% extends "notifications/base_email.html" %}
+{% block subject %}Visit Summary — Campus Health Centre{% endblock %}
+
+{% block body %}
+<p class="greeting">Visit Summary</p>
+
+<p>
+  Hi {{ appointment.student.first_name }}, thank you for visiting the
+  Campus Health Centre. Below is a summary of your consultation.
+</p>
+
+<div class="info-box">
+  <table>
+    <tr>
+      <td>Date of Visit</td>
+      <td>{{ appointment.date|date:"l, d F Y" }}</td>
+    </tr>
+    <tr>
+      <td>Type</td>
+      <td>{{ appointment.get_appointment_type_display }}</td>
+    </tr>
+    <tr>
+      <td>Attending Staff</td>
+      <td>{{ appointment.staff.get_full_name|default:"—" }}</td>
+    </tr>
+  </table>
+</div>
+
+{% if appointment.notes %}
+<hr class="divider">
+<p><strong>Clinical Notes</strong></p>
+<p>{{ appointment.notes }}</p>
+{% endif %}
+
+{% if appointment.diagnosis %}
+<hr class="divider">
+<p><strong>Diagnosis</strong></p>
+<p>{{ appointment.diagnosis }}</p>
+{% endif %}
+
+{% if appointment.prescription %}
+<hr class="divider">
+<p><strong>Prescription</strong></p>
+<p style="white-space:pre-line;">{{ appointment.prescription }}</p>
+{% endif %}
+
+{% if appointment.follow_up_date %}
+<div class="alert alert-info">
+  <strong>Follow-up Required:</strong> Your doctor has recommended a
+  follow-up appointment on
+  <strong>{{ appointment.follow_up_date|date:"d F Y" }}</strong>.
+  Please book this through the portal.
+</div>
+{% endif %}
+
+{% if appointment.referred_to %}
+<div class="alert alert-warning">
+  <strong>Referral:</strong> You have been referred to
+  <strong>{{ appointment.referred_to }}</strong>.
+  Please follow up with them as soon as possible.
+</div>
+{% endif %}
+
+<div class="alert alert-success">
+  You can view your full health record at any time from your student portal.
+</div>
+
+<div class="btn-container">
+  <a href="http://127.0.0.1:8000/appointments/{{ appointment.pk }}/" class="btn">
+    View Full Record
+  </a>
+</div>
+
+<p style="font-size:13px;color:#adb5bd;margin-top:20px;">
+  If you have any questions about your prescription or diagnosis, please
+  contact the health centre directly.
+</p>
+{% endblock %}

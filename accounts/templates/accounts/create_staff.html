@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Create Staff Account — Campus Health{% endblock %}
+{% block page_title %}Create Staff Account{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-7">
+
+    <div class="alert alert-info d-flex gap-2 align-items-start mb-4 small">
+      <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
+      <div>
+        You are creating a medical staff account directly. The account will be
+        <strong>active immediately</strong> — the staff member can log in right away
+        using the username and password you set here.
+        Share the credentials with them securely.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-person-plus-fill me-2"></i>New Medical Staff Account
+      </div>
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <!-- Personal details -->
+          <h6 class="fw-bold mb-3 pb-1 text-muted small text-uppercase"
+              style="border-bottom:2px solid #f0faf6;">
+            Personal Details
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">First Name *</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}
+              <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Last Name *</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}
+              <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Email Address *</label>
+              {{ form.email }}
+              {% if form.email.errors %}
+              <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Phone Number *</label>
+              {{ form.phone }}
+              {% if form.phone.errors %}
+              <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Professional details -->
+          <h6 class="fw-bold mb-3 pb-1 text-muted small text-uppercase"
+              style="border-bottom:2px solid #f0faf6;">
+            Professional Details
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Staff ID *</label>
+              {{ form.staff_id }}
+              {% if form.staff_id.errors %}
+              <div class="text-danger small mt-1">{{ form.staff_id.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Specialization *</label>
+              {{ form.specialization }}
+              <div class="form-text">e.g. General Practitioner, Nurse, Pharmacist</div>
+              {% if form.specialization.errors %}
+              <div class="text-danger small mt-1">{{ form.specialization.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Qualifications *</label>
+              {{ form.qualification }}
+              <div class="form-text">e.g. MBBS, RN, B.Pharm, M.D.</div>
+              {% if form.qualification.errors %}
+              <div class="text-danger small mt-1">{{ form.qualification.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Login credentials -->
+          <h6 class="fw-bold mb-3 pb-1 text-muted small text-uppercase"
+              style="border-bottom:2px solid #f0faf6;">
+            Login Credentials
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Username *</label>
+              {{ form.username }}
+              <div class="form-text">Letters, digits and @/./+/-/_ only. Share this with the staff member.</div>
+              {% if form.username.errors %}
+              <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Password *</label>
+              {{ form.password1 }}
+              {% if form.password1.errors %}
+              <div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Confirm Password *</label>
+              {{ form.password2 }}
+              {% if form.password2.errors %}
+              <div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success px-4 fw-semibold">
+              <i class="bi bi-person-check-fill me-2"></i>Create Staff Account
+            </button>
+            <a href="{% url 'pending_staff' %}" class="btn btn-outline-secondary px-4">
+              Cancel
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sidebar info -->
+  <div class="col-lg-4 offset-lg-1 mt-4 mt-lg-0">
+    <div class="card border-0" style="background:#e1f5ee;">
+      <div class="card-body p-4">
+        <h6 class="fw-bold mb-3" style="color:#085041;">
+          <i class="bi bi-lightbulb-fill me-2"></i>How it works
+        </h6>
+        <ol class="small ps-3 mb-0" style="color:#085041;line-height:2;">
+          <li>Fill in the staff member's details and set a username and password</li>
+          <li>Click <strong>Create Staff Account</strong></li>
+          <li>The account is active immediately — no approval needed</li>
+          <li>Share the username and password with the staff member</li>
+          <li>They log in at <strong>/login/</strong> and can change their password from their profile</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header small fw-semibold">
+        <i class="bi bi-people me-2"></i>Existing Staff
+      </div>
+      <div class="card-body text-center py-4">
+        <a href="{% url 'pending_staff' %}" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-person-check me-1"></i>View Staff List
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

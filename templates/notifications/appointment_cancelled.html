@@ -1,0 +1,45 @@
+{% extends "notifications/base_email.html" %}
+{% block subject %}Appointment Cancelled{% endblock %}
+
+{% block body %}
+<p class="greeting">Appointment Cancelled</p>
+
+<p>
+  Hi {{ appointment.student.first_name }}, your appointment has been
+  cancelled. See the details below.
+</p>
+
+<div class="info-box">
+  <table>
+    <tr>
+      <td>Type</td>
+      <td>{{ appointment.get_appointment_type_display }}</td>
+    </tr>
+    <tr>
+      <td>Date</td>
+      <td>{{ appointment.date|date:"l, d F Y" }}</td>
+    </tr>
+    <tr>
+      <td>Time</td>
+      <td>{{ appointment.time|time:"H:i" }}</td>
+    </tr>
+    {% if appointment.cancellation_reason %}
+    <tr>
+      <td>Reason</td>
+      <td>{{ appointment.cancellation_reason }}</td>
+    </tr>
+    {% endif %}
+  </table>
+</div>
+
+<p>
+  If you still need medical attention, please book a new appointment
+  through the health portal.
+</p>
+
+<div class="btn-container">
+  <a href="http://127.0.0.1:8000/appointments/book/" class="btn">
+    Book a New Appointment
+  </a>
+</div>
+{% endblock %}

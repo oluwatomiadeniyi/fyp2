@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Book Appointment — Campus Health{% endblock %}
+{% block page_title %}Book an Appointment{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- Booking form -->
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-calendar-plus me-2"></i>Appointment Details
+      </div>
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Appointment Type *</label>
+              {{ form.appointment_type }}
+              {% if form.appointment_type.errors %}
+              <div class="text-danger small">{{ form.appointment_type.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Priority</label>
+              {{ form.priority }}
+            </div>
+
+            <div class="col-md-12">
+              <label class="form-label small fw-semibold">{{ form.staff.label }}</label>
+              {{ form.staff }}
+              <div class="form-text">You can leave this unassigned — a staff member will be allocated.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Preferred Date *</label>
+              {{ form.date }}
+              {% if form.date.errors %}
+              <div class="text-danger small">{{ form.date.errors.0 }}</div>
+              {% endif %}
+              <div class="form-text">{{ form.date.help_text }}</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Preferred Time *</label>
+              {{ form.time }}
+              {% if form.time.errors %}
+              <div class="text-danger small">{{ form.time.errors.0 }}</div>
+              {% endif %}
+              <div class="form-text">{{ form.time.help_text }}</div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Reason for Visit *</label>
+              {{ form.reason }}
+              {% if form.reason.errors %}
+              <div class="text-danger small">{{ form.reason.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Current Symptoms (optional)</label>
+              {{ form.symptoms }}
+            </div>
+
+          </div>
+
+          <div class="alert alert-info small mt-3 mb-3 d-flex gap-2">
+            <i class="bi bi-info-circle-fill flex-shrink-0"></i>
+            <span>After booking, your appointment will be <strong>Pending</strong> until a staff member confirms it.
+            You will receive an email notification when it is confirmed.</span>
+          </div>
+
+          <button type="submit" class="btn btn-success px-5">
+            <i class="bi bi-check-lg me-2"></i>Confirm Booking
+          </button>
+          <a href="{% url 'appointment_list' %}" class="btn btn-outline-secondary ms-2">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar: upcoming + tips -->
+  <div class="col-lg-5">
+
+    {% if upcoming %}
+    <div class="card mb-3">
+      <div class="card-header small fw-semibold">
+        <i class="bi bi-clock-history me-2"></i>Your Upcoming Appointments
+      </div>
+      <div class="list-group list-group-flush">
+        {% for a in upcoming %}
+        <a href="{% url 'appointment_detail' a.pk %}"
+           class="list-group-item list-group-item-action py-2 px-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="small fw-semibold">{{ a.get_appointment_type_display }}</div>
+              <div class="text-muted" style="font-size:.75rem;">
+                {{ a.date|date:"d M Y" }} at {{ a.time|time:"H:i" }}
+              </div>
+            </div>
+            <span class="badge bg-{{ a.get_status_badge_class }}">{{ a.get_status_display }}</span>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-header small fw-semibold">
+        <i class="bi bi-lightbulb me-2 text-warning"></i>What to Expect
+      </div>
+      <div class="card-body small">
+        <div class="d-flex gap-2 mb-3">
+          <span class="badge rounded-pill bg-warning text-dark" style="height:fit-content;margin-top:2px;">1</span>
+          <div><strong>Book</strong> — fill in the form and submit. Status will show <em>Pending</em>.</div>
+        </div>
+        <div class="d-flex gap-2 mb-3">
+          <span class="badge rounded-pill bg-primary" style="height:fit-content;margin-top:2px;">2</span>
+          <div><strong>Confirmed</strong> — a staff member reviews and confirms your slot. You'll get an email.</div>
+        </div>
+        <div class="d-flex gap-2 mb-3">
+          <span class="badge rounded-pill bg-success" style="height:fit-content;margin-top:2px;">3</span>
+          <div><strong>Attend</strong> — arrive 10 minutes early. Bring your student ID.</div>
+        </div>
+        <div class="d-flex gap-2">
+          <span class="badge rounded-pill" style="background:#e1f5ee;color:#085041;height:fit-content;margin-top:2px;">4</span>
+          <div><strong>Feedback</strong> — after your visit, you can rate the consultation.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

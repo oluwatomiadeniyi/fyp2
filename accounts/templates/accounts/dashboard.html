@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Campus Health{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+{% if user.is_student %}
+<!-- ── Student Dashboard ─────────────────────────────────────── -->
+
+{% if not user.profile_complete %}
+<div class="alert alert-warning d-flex align-items-center gap-3 mb-4">
+  <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+  <div>
+    <strong>Complete your profile</strong> — your medical information is not fully filled in.
+    This helps medical staff provide better care.
+    <a href="{% url 'profile_medical' %}" class="alert-link ms-2">Complete now &rarr;</a>
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-4 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="background:#0f6e56;">
+      <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+      <div class="stat-number">{{ upcoming_appointments|length|default:"0" }}</div>
+      <div class="stat-label">Upcoming Appointments</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="background:#185fa5;">
+      <div class="stat-icon"><i class="bi bi-journal-medical"></i></div>
+      <div class="stat-number">0</div>
+      <div class="stat-label">Health Records</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="background:#7f4f24;">
+      <div class="stat-icon"><i class="bi bi-emoji-smile"></i></div>
+      <div class="stat-number">{{ recent_wellness|length|default:"0" }}</div>
+      <div class="stat-label">Wellness Logs</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="background:{% if user.profile_complete %}#0f6e56{% else %}#ba7517{% endif %};">
+      <div class="stat-icon"><i class="bi bi-person-check"></i></div>
+      <div class="stat-number">{% if user.profile_complete %}100{% else %}~60{% endif %}%</div>
+      <div class="stat-label">Profile Completeness</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Profile summary card -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header">
+        <i class="bi bi-person-vcard me-2"></i>Your Medical Summary
+      </div>
+      <div class="card-body">
+        <dl class="row small mb-0">
+          <dt class="col-5 text-muted">Blood Group</dt>
+          <dd class="col-7 fw-semibold">
+            {% if user.blood_group and user.blood_group != 'unknown' %}
+              <span class="badge" style="background:#fcebeb;color:#a32d2d;">{{ user.blood_group }}</span>
+            {% else %}<span class="text-muted">Not set</span>{% endif %}
+          </dd>
+          <dt class="col-5 text-muted">Genotype</dt>
+          <dd class="col-7">{{ user.genotype|default:"Not set" }}</dd>
+          <dt class="col-5 text-muted">BMI</dt>
+          <dd class="col-7">
+            {% if user.get_bmi %}{{ user.get_bmi }} — {{ user.bmi_category }}
+            {% else %}Not calculated{% endif %}
+          </dd>
+          <dt class="col-5 text-muted">Allergies</dt>
+          <dd class="col-7">{{ user.allergies|default:"Not set"|truncatechars:40 }}</dd>
+          <dt class="col-5 text-muted">Conditions</dt>
+          <dd class="col-7">{{ user.chronic_conditions|default:"Not set"|truncatechars:40 }}</dd>
+          <dt class="col-5 text-muted">NHIS</dt>
+          <dd class="col-7">{% if user.has_nhis %}Yes — {{ user.nhis_number }}{% else %}No{% endif %}</dd>
+        </dl>
+        <a href="{% url 'profile_medical' %}" class="btn btn-sm btn-outline-success mt-3 w-100">
+          <i class="bi bi-pencil me-1"></i>Update Medical Info
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-lightning me-2"></i>Quick Actions</div>
+      <div class="card-body d-flex flex-column gap-2">
+        <a href="#" class="btn btn-outline-success text-start d-flex align-items-center gap-2">
+          <i class="bi bi-calendar-plus"></i>Book an Appointment
+        </a>
+        <a href="{% url 'profile_medical' %}" class="btn btn-outline-primary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-heart-pulse"></i>Update Medical Profile
+        </a>
+        <a href="#" class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-clipboard2-pulse"></i>View Health Records
+        </a>
+        <a href="#" class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-emoji-smile"></i>Log Wellness Entry
+        </a>
+        <a href="{% url 'profile_emergency' %}" class="btn btn-outline-danger text-start d-flex align-items-center gap-2">
+          <i class="bi bi-telephone-fill"></i>Emergency Contacts
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student info card -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-mortarboard me-2"></i>Academic Info</div>
+      <div class="card-body">
+        <dl class="row small mb-0">
+          <dt class="col-5 text-muted">Matric No.</dt>
+          <dd class="col-7 fw-semibold">{{ user.matric_number|default:"Not set" }}</dd>
+          <dt class="col-5 text-muted">Department</dt>
+          <dd class="col-7">{{ user.department|default:"Not set" }}</dd>
+          <dt class="col-5 text-muted">Faculty</dt>
+          <dd class="col-7">{{ user.faculty|default:"Not set" }}</dd>
+          <dt class="col-5 text-muted">Level</dt>
+          <dd class="col-7">{{ user.level|default:"Not set" }}</dd>
+          <dt class="col-5 text-muted">Hall</dt>
+          <dd class="col-7">{{ user.hall_of_residence|default:"Off-campus / Not set" }}</dd>
+          <dt class="col-5 text-muted">State</dt>
+          <dd class="col-7">{{ user.state_of_origin|default:"Not set" }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% elif user.is_medical_staff %}
+<!-- ── Staff Dashboard ───────────────────────────────────────── -->
+<div class="row g-4 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="background:#0f6e56;">
+      <div class="stat-icon"><i class="bi bi-calendar-day"></i></div>
+      <div class="stat-number">{{ today_appointments|length|default:"0" }}</div>
+      <div class="stat-label">Today's Appointments</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="background:#ba7517;">
+      <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+      <div class="stat-number">{{ pending_count|default:"0" }}</div>
+      <div class="stat-label">Pending Requests</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header d-flex justify-content-between">
+    <span><i class="bi bi-calendar2-week me-2"></i>Today's Schedule</span>
+    <a href="{% url 'student_directory' %}" class="btn btn-sm btn-outline-success">
+      <i class="bi bi-people me-1"></i>Student Directory
+    </a>
+  </div>
+  <div class="card-body text-center py-5 text-muted">
+    <i class="bi bi-calendar-check display-4 d-block mb-2 opacity-25"></i>
+    Appointments module coming soon.
+  </div>
+</div>
+
+
+{% elif user.is_admin_user %}
+<!-- ── Admin Dashboard ───────────────────────────────────────── -->
+<div class="row g-4 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="background:#0f6e56;">
+      <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+      <div class="stat-number">{{ total_students }}</div>
+      <div class="stat-label">Registered Students</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="background:#185fa5;">
+      <div class="stat-icon"><i class="bi bi-person-badge"></i></div>
+      <div class="stat-number">{{ total_staff }}</div>
+      <div class="stat-label">Active Medical Staff</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="background:#ba7517;">
+      <div class="stat-icon"><i class="bi bi-person-exclamation"></i></div>
+      <div class="stat-number">{{ pending_staff }}</div>
+      <div class="stat-label">Pending Staff Approvals</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="background:#6f42c1;">
+      <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+      <div class="stat-number">{{ total_appointments }}</div>
+      <div class="stat-label">Total Appointments</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-lightning me-2"></i>Admin Quick Actions</div>
+      <div class="card-body d-flex flex-column gap-2">
+        <a href="{% url 'unassigned_appointments' %}" class="btn btn-outline-danger text-start d-flex align-items-center gap-2">
+          <i class="bi bi-person-fill-check"></i>Assign Doctors to Appointments
+          {% if appts_pending %}<span class="badge bg-danger ms-auto">{{ appts_pending }}</span>{% endif %}
+        </a>
+        <a href="{% url 'student_directory' %}" class="btn btn-outline-success text-start d-flex align-items-center gap-2">
+          <i class="bi bi-people"></i>View All Students
+        </a>
+        <a href="{% url 'pending_staff' %}" class="btn btn-outline-warning text-start d-flex align-items-center gap-2">
+          <i class="bi bi-person-check"></i>Manage Medical Staff
+        </a>
+        <a href="{% url 'create_staff' %}" class="btn btn-outline-primary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-person-plus"></i>Create Staff Account
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+{% endblock %}

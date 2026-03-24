@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — Campus Health{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="row g-4">
+
+    <!-- LEFT COLUMN -->
+    <div class="col-lg-8">
+
+      <!-- Section: Visit info -->
+      <div class="card mb-4">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-calendar-check me-2"></i>Visit Information
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Student *</label>
+              {{ form.student }}
+              {% if form.student.errors %}
+              <div class="text-danger small">{{ form.student.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Linked Appointment</label>
+              {{ form.appointment }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Visit Date *</label>
+              {{ form.visit_date }}
+              {% if form.visit_date.errors %}
+              <div class="text-danger small">{{ form.visit_date.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Visit Type *</label>
+              {{ form.visit_type }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Outcome *</label>
+              {{ form.outcome }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Vitals -->
+      <div class="card mb-4">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-activity me-2"></i>Vital Signs
+          <span class="text-muted fw-normal small ms-2">(all optional)</span>
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Temperature (°C)</label>
+              {{ form.temperature_c }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Blood Pressure</label>
+              {{ form.blood_pressure }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Pulse (bpm)</label>
+              {{ form.pulse_rate }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Resp. Rate</label>
+              {{ form.respiratory_rate }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">SpO₂ (%)</label>
+              {{ form.oxygen_saturation }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Weight (kg)</label>
+              {{ form.weight_kg }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Height (cm)</label>
+              {{ form.height_cm }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Clinical notes -->
+      <div class="card mb-4">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-file-medical me-2"></i>Clinical Notes
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Chief Complaint / Presenting Symptoms *</label>
+              {{ form.chief_complaint }}
+              {% if form.chief_complaint.errors %}
+              <div class="text-danger small">{{ form.chief_complaint.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">History of Presenting Illness</label>
+              {{ form.history }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Physical Examination Findings</label>
+              {{ form.examination }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Diagnosis *</label>
+              {{ form.diagnosis }}
+              {% if form.diagnosis.errors %}
+              <div class="text-danger small">{{ form.diagnosis.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Treatment / Management</label>
+              {{ form.treatment }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Lab Results / Investigations</label>
+              {{ form.lab_results }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Additional Notes</label>
+              {{ form.notes }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Prescriptions (inline formset) -->
+      <div class="card mb-4">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-capsule me-2"></i>Prescription / Medications
+        </div>
+        <div class="card-body p-3">
+          {{ formset.management_form }}
+          <div id="prescription-forms">
+            {% for pform in formset %}
+            <div class="prescription-row border rounded p-3 mb-3 position-relative">
+              {{ pform.id }}
+              <div class="row g-2">
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold">Drug Name</label>
+                  {{ pform.drug_name }}
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label small fw-semibold">Dosage</label>
+                  {{ pform.dosage }}
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label small fw-semibold">Frequency</label>
+                  {{ pform.frequency }}
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label small fw-semibold">Route</label>
+                  {{ pform.route }}
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label small fw-semibold">Duration</label>
+                  {{ pform.duration }}
+                </div>
+                <div class="col-md-8">
+                  <label class="form-label small fw-semibold">Instructions</label>
+                  {{ pform.instructions }}
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                  <div class="form-check mb-2">
+                    {{ pform.dispensed }}
+                    <label class="form-check-label small" for="{{ pform.dispensed.id_for_label }}">
+                      Dispensed
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                  {% if pform.instance.pk %}
+                  <div class="form-check mb-2">
+                    {{ pform.DELETE }}
+                    <label class="form-check-label small text-danger"
+                           for="{{ pform.DELETE.id_for_label }}">Remove</label>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="col-lg-4">
+      <div class="card mb-4">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-arrow-up-right-circle me-2"></i>Referral & Follow-up
+        </div>
+        <div class="card-body p-4">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Follow-up Date</label>
+            {{ form.follow_up_date }}
+            {% if form.follow_up_date.errors %}
+            <div class="text-danger small">{{ form.follow_up_date.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Referred To</label>
+            {{ form.referred_to }}
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-shield-lock me-2"></i>Confidentiality
+        </div>
+        <div class="card-body p-4">
+          <div class="form-check">
+            {{ form.is_confidential }}
+            <label class="form-check-label small"
+                   for="{{ form.is_confidential.id_for_label }}">
+              Mark as confidential
+              <span class="d-block text-muted" style="font-size:.78rem;">
+                Student will not be able to view this record.
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-success btn-lg">
+          <i class="bi bi-check-lg me-2"></i>{{ action }}
+        </button>
+        <a href="{% url 'record_list' %}" class="btn btn-outline-secondary">
+          Cancel
+        </a>
+      </div>
+    </div>
+
+  </div>
+</form>
+{% endblock %}

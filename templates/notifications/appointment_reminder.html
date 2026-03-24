@@ -1,0 +1,47 @@
+{% extends "notifications/base_email.html" %}
+{% block subject %}Reminder: Appointment Tomorrow at {{ appointment.time|time:"H:i" }}{% endblock %}
+
+{% block body %}
+<p class="greeting">Appointment Reminder</p>
+
+<p>
+  Hi {{ appointment.student.first_name }}, this is a friendly reminder
+  that you have a health centre appointment <strong>tomorrow</strong>.
+</p>
+
+<div class="info-box">
+  <table>
+    <tr>
+      <td>Date</td>
+      <td><strong>{{ appointment.date|date:"l, d F Y" }}</strong></td>
+    </tr>
+    <tr>
+      <td>Time</td>
+      <td><strong>{{ appointment.time|time:"H:i" }}</strong></td>
+    </tr>
+    <tr>
+      <td>Type</td>
+      <td>{{ appointment.get_appointment_type_display }}</td>
+    </tr>
+    <tr>
+      <td>Doctor</td>
+      <td>{{ appointment.staff.get_full_name|default:"To be confirmed" }}</td>
+    </tr>
+    <tr>
+      <td>Location</td>
+      <td>Campus Health Centre</td>
+    </tr>
+  </table>
+</div>
+
+<div class="alert alert-warning">
+  <strong>Don't forget:</strong> Arrive 10 minutes early and bring your student ID.
+  If you need to cancel, please do so before your appointment time.
+</div>
+
+<div class="btn-container">
+  <a href="http://127.0.0.1:8000/appointments/{{ appointment.pk }}/" class="btn">
+    View or Cancel Appointment
+  </a>
+</div>
+{% endblock %}

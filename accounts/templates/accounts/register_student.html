@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Student Registration — Campus Health{% endblock %}
+
+{% block public_content %}
+<div style="background:#f4f6f9;min-height:100vh;padding:2rem 1rem;">
+  <div class="container" style="max-width:760px;">
+
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <a href="{% url 'home' %}" class="text-decoration-none d-inline-flex align-items-center gap-2 mb-3"
+         style="color:#085041;">
+        <i class="bi bi-heart-pulse-fill fs-5"></i>
+        <span class="fw-bold">Campus Health</span>
+      </a>
+      <h4 class="fw-bold">Create your student account</h4>
+      <p class="text-muted small">Fill in your details below. You can complete your medical info after registration.</p>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4 p-md-5">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <!-- ── Section: Personal ─────────────── -->
+          <h6 class="fw-bold mb-3 pb-1" style="border-bottom:2px solid #e9ecef;color:#085041;">
+            <i class="bi bi-person me-2"></i>Personal Information
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">First Name *</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Last Name *</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Email Address *</label>
+              {{ form.email }}
+              {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Phone Number *</label>
+              {{ form.phone }}
+              {% if form.phone.errors %}<div class="text-danger small">{{ form.phone.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Date of Birth *</label>
+              {{ form.date_of_birth }}
+              {% if form.date_of_birth.errors %}<div class="text-danger small">{{ form.date_of_birth.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Gender *</label>
+              {{ form.gender }}
+              {% if form.gender.errors %}<div class="text-danger small">{{ form.gender.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">State of Origin *</label>
+              {{ form.state_of_origin }}
+              {% if form.state_of_origin.errors %}<div class="text-danger small">{{ form.state_of_origin.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <!-- ── Section: Academic ─────────────── -->
+          <h6 class="fw-bold mb-3 pb-1" style="border-bottom:2px solid #e9ecef;color:#085041;">
+            <i class="bi bi-mortarboard me-2"></i>Academic Information
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Matric Number *</label>
+              {{ form.matric_number }}
+              {% if form.matric_number.errors %}<div class="text-danger small">{{ form.matric_number.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Department *</label>
+              {{ form.department }}
+              {% if form.department.errors %}<div class="text-danger small">{{ form.department.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Faculty / College *</label>
+              {{ form.faculty }}
+              {% if form.faculty.errors %}<div class="text-danger small">{{ form.faculty.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Level *</label>
+              {{ form.level }}
+              {% if form.level.errors %}<div class="text-danger small">{{ form.level.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-3">
+              <!-- spacer -->
+            </div>
+            <div class="col-md-8">
+              <label class="form-label small fw-semibold">Hall of Residence</label>
+              {{ form.hall_of_residence }}
+              <div class="form-text">Leave blank if you live off-campus</div>
+            </div>
+          </div>
+
+          <!-- ── Section: Account ──────────────── -->
+          <h6 class="fw-bold mb-3 pb-1" style="border-bottom:2px solid #e9ecef;color:#085041;">
+            <i class="bi bi-shield-lock me-2"></i>Account Details
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-12">
+              <label class="form-label small fw-semibold">Username *</label>
+              {{ form.username }}
+              <div class="form-text">Letters, digits and @/./+/-/_ only</div>
+              {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Password *</label>
+              {{ form.password1 }}
+              {% if form.password1.errors %}<div class="text-danger small">{{ form.password1.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Confirm Password *</label>
+              {{ form.password2 }}
+              {% if form.password2.errors %}<div class="text-danger small">{{ form.password2.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-lg w-100 fw-semibold text-white"
+                  style="background:#0f6e56;">
+            <i class="bi bi-person-check me-2"></i>Create Account
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <p class="text-center mt-3 small text-muted">
+      Already have an account? <a href="{% url 'login' %}" style="color:#0f6e56;" class="fw-semibold">Sign in</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

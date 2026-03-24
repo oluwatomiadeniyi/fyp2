@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Medical History — {{ student.get_full_name }}{% endblock %}
+{% block page_title %}Full Medical History{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-2 mb-4">
+  <a href="{% url 'student_detail' student.pk %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Student Profile
+  </a>
+  <a href="{% url 'create_record' %}?student={{ student.pk }}" class="btn btn-sm btn-success">
+    <i class="bi bi-plus-lg me-1"></i>New Record
+  </a>
+</div>
+
+<!-- Student summary -->
+<div class="card mb-4">
+  <div class="card-body p-4">
+    <div class="d-flex align-items-center gap-3">
+      <div>
+        <h5 class="fw-bold mb-0">{{ student.get_full_name }}</h5>
+        <p class="text-muted small mb-1">
+          {{ student.matric_number }} &middot; {{ student.department }} &middot; {{ student.level }} Level
+        </p>
+        <div class="d-flex gap-2 flex-wrap">
+          {% if student.blood_group and student.blood_group != 'unknown' %}
+          <span class="badge px-2" style="background:#fcebeb;color:#a32d2d;">
+            <i class="bi bi-droplet-fill me-1"></i>{{ student.blood_group }}
+          </span>
+          {% endif %}
+          {% if student.allergies %}
+          <span class="badge px-2 bg-warning text-dark">
+            <i class="bi bi-exclamation-triangle me-1"></i>Allergies: {{ student.allergies|truncatechars:40 }}
+          </span>
+          {% endif %}
+          {% if student.chronic_conditions %}
+          <span class="badge px-2" style="background:#e6f1fb;color:#0c447c;">
+            {{ student.chronic_conditions|truncatechars:40 }}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Records timeline -->
+<h6 class="fw-bold mb-3 text-muted">
+  <i class="bi bi-journal-medical me-2"></i>Visit Records ({{ records.count }})
+</h6>
+
+{% if records %}
+<div class="row g-3 mb-5">
+  {% for record in records %}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body p-3">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <div>
+            <span class="fw-semibold">{{ record.get_visit_type_display }}</span>
+            <span class="text-muted small ms-2">{{ record.visit_date|date:"d M Y" }}</span>
+            {% if record.attending_staff %}
+            <span class="text-muted small ms-2">· Dr {{ record.attending_staff.get_full_name }}</span>
+            {% endif %}
+          </div>
+          <div class="d-flex gap-2 align-items-center">
+            <span class="badge bg-{{ record.get_outcome_badge_class }}">
+              {{ record.get_outcome_display }}
+            </span>
+            {% if record.is_confidential %}
+            <span class="badge bg-dark">Confidential</span>
+            {% endif %}
+            <a href="{% url 'record_detail' record.pk %}"
+               class="btn btn-sm btn-outline-secondary" style="font-size:.75rem;padding:.2rem .6rem;">
+              View
+            </a>
+          </div>
+        </div>
+        <p class="small text-muted mt-2 mb-1">
+          <strong>Diagnosis:</strong> {{ record.diagnosis|truncatechars:120 }}
+        </p>
+        {% if record.follow_up_date %}
+        <span class="badge bg-primary" style="font-size:.72rem;">
+          Follow-up: {{ record.follow_up_date|date:"d M Y" }}
+        </span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card mb-4">
+  <div class="card-body text-center py-4 text-muted">
+    No health records on file for this student.
+  </div>
+</div>
+{% endif %}
+
+<!-- Vaccinations -->
+<h6 class="fw-bold mb-3 text-muted">
+  <i class="bi bi-shield-plus me-2"></i>Vaccination Records ({{ vaccinations.count }})
+</h6>
+{% if vaccinations %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead class="table-light">
+        <tr>
+          <th>Vaccine</th>
+          <th>Date Given</th>
+          <th>Next Due</th>
+          <th>Batch</th>
+          <th>Administered By</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in vaccinations %}
+        <tr>
+          <td class="fw-semibold">{{ v.get_vaccine_display }}{% if v.other_vaccine %} — {{ v.other_vaccine }}{% endif %}</td>
+          <td>{{ v.date_given|date:"d M Y" }}</td>
+          <td>
+            {% if v.next_due_date %}{{ v.next_due_date|date:"d M Y" }}
+            {% else %}<span class="text-muted">—</span>{% endif %}
+          </td>
+          <td>{{ v.batch_number|default:"—" }}</td>
+          <td>{{ v.administered_by.get_full_name|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-3 text-muted small">
+    No vaccination records on file.
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

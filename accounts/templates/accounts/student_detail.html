@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}{{ student.get_full_name }} — Student Profile{% endblock %}
+{% block page_title %}Student Profile{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-2 mb-4">
+  <a href="{% url 'student_directory' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Back to Directory
+  </a>
+</div>
+
+<!-- Header -->
+<div class="card mb-4">
+  <div class="card-body p-4">
+    <div class="d-flex align-items-center gap-4 flex-wrap">
+      {% if student.profile_photo %}
+        <img src="{{ student.profile_photo.url }}" class="profile-avatar-lg" alt="">
+      {% else %}
+        <div class="profile-avatar-lg d-flex align-items-center justify-content-center"
+             style="background:#e1f5ee;color:#085041;font-size:2.5rem;font-weight:700;">
+          {{ student.first_name|first|upper }}{{ student.last_name|first|upper }}
+        </div>
+      {% endif %}
+      <div>
+        <h4 class="fw-bold mb-1">{{ student.get_full_name }}</h4>
+        <p class="text-muted mb-1 small">
+          <i class="bi bi-envelope me-1"></i>{{ student.email }}
+          &nbsp;·&nbsp;<i class="bi bi-telephone me-1"></i>{{ student.phone|default:"No phone" }}
+        </p>
+        <div class="d-flex gap-2 flex-wrap mt-2">
+          {% if student.blood_group and student.blood_group != 'unknown' %}
+          <span class="badge px-3" style="background:#fcebeb;color:#a32d2d;">
+            <i class="bi bi-droplet-fill me-1"></i>{{ student.blood_group }}
+          </span>
+          {% endif %}
+          {% if student.genotype and student.genotype != 'unknown' %}
+          <span class="badge px-3" style="background:#faeeda;color:#633806;">{{ student.genotype }}</span>
+          {% endif %}
+          {% if student.get_age %}
+          <span class="badge px-3" style="background:#e1f5ee;color:#085041;">Age {{ student.get_age }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Academic info -->
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-mortarboard me-2"></i>Academic</div>
+      <div class="card-body">
+        <dl class="row small mb-0">
+          <dt class="col-5 text-muted">Matric No.</dt>
+          <dd class="col-7 fw-semibold">{{ student.matric_number|default:"—" }}</dd>
+          <dt class="col-5 text-muted">Department</dt>
+          <dd class="col-7">{{ student.department|default:"—" }}</dd>
+          <dt class="col-5 text-muted">Faculty</dt>
+          <dd class="col-7">{{ student.faculty|default:"—" }}</dd>
+          <dt class="col-5 text-muted">Level</dt>
+          <dd class="col-7">{{ student.level|default:"—" }}</dd>
+          <dt class="col-5 text-muted">Hall</dt>
+          <dd class="col-7">{{ student.hall_of_residence|default:"Off-campus" }}</dd>
+          <dt class="col-5 text-muted">State</dt>
+          <dd class="col-7">{{ student.state_of_origin|default:"—" }}</dd>
+          <dt class="col-5 text-muted">Nationality</dt>
+          <dd class="col-7">{{ student.nationality|default:"—" }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- Medical info -->
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-heart-pulse me-2"></i>Medical</div>
+      <div class="card-body">
+        <dl class="row small mb-0">
+          <dt class="col-5 text-muted">Blood Group</dt>
+          <dd class="col-7">{{ student.blood_group|default:"Unknown" }}</dd>
+          <dt class="col-5 text-muted">Genotype</dt>
+          <dd class="col-7">{{ student.genotype|default:"Unknown" }}</dd>
+          <dt class="col-5 text-muted">Height</dt>
+          <dd class="col-7">{% if student.height_cm %}{{ student.height_cm }} cm{% else %}—{% endif %}</dd>
+          <dt class="col-5 text-muted">Weight</dt>
+          <dd class="col-7">{% if student.weight_kg %}{{ student.weight_kg }} kg{% else %}—{% endif %}</dd>
+          <dt class="col-5 text-muted">BMI</dt>
+          <dd class="col-7">{% if student.get_bmi %}{{ student.get_bmi }} ({{ student.bmi_category }}){% else %}—{% endif %}</dd>
+          <dt class="col-5 text-muted">Allergies</dt>
+          <dd class="col-7">{{ student.allergies|default:"None stated" }}</dd>
+          <dt class="col-5 text-muted">Conditions</dt>
+          <dd class="col-7">{{ student.chronic_conditions|default:"None stated" }}</dd>
+          <dt class="col-5 text-muted">Medications</dt>
+          <dd class="col-7">{{ student.current_medications|default:"None" }}</dd>
+          <dt class="col-5 text-muted">NHIS</dt>
+          <dd class="col-7">{% if student.has_nhis %}Yes — {{ student.nhis_number }}{% else %}No{% endif %}</dd>
+          <dt class="col-5 text-muted">Immunised</dt>
+          <dd class="col-7">{% if student.immunization_up_to_date %}Yes{% else %}Not confirmed{% endif %}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- Emergency contacts -->
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-telephone-fill me-2 text-danger"></i>Emergency Contacts</div>
+      <div class="card-body p-0">
+        {% for contact in student.emergency_contacts.all %}
+        <div class="px-3 py-2 border-bottom">
+          <div class="fw-semibold small">
+            {{ contact.name }}
+            {% if contact.is_primary %}<span class="badge bg-danger ms-1" style="font-size:.65rem;">Primary</span>{% endif %}
+          </div>
+          <div class="text-muted" style="font-size:.78rem;">{{ contact.get_relationship_display }}</div>
+          <div class="small"><i class="bi bi-telephone me-1"></i>{{ contact.phone }}</div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted small">No emergency contacts on file.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Upload Document{% endblock %}
+{% block page_title %}Attach Document{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-paperclip me-2"></i>Upload to: {{ record.student.get_full_name }} — {{ record.visit_date|date:"d M Y" }}
+      </div>
+      <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+          </div>
+          {% endfor %}
+          <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary px-4">Upload</button>
+            <a href="{% url 'record_detail' record.pk %}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

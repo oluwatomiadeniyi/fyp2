@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Wellness History{% endblock %}
+{% block page_title %}Wellness History{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <span class="text-muted small">{{ logs.count }} total log{{ logs.count|pluralize }}</span>
+  <a href="{% url 'log_wellness' %}" class="btn btn-sm btn-success">
+    <i class="bi bi-plus-lg me-1"></i>Log Today
+  </a>
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead class="table-light">
+        <tr>
+          <th>Date</th><th>Mood</th><th>Stress</th><th>Sleep</th>
+          <th>Activity</th><th>Water</th><th>Score</th><th>Symptoms</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td class="fw-semibold">{{ log.date|date:"d M Y" }}</td>
+          <td><span class="badge bg-{{ log.get_mood_color }}">{{ log.get_mood_display }}</span></td>
+          <td><span class="badge bg-{{ log.get_stress_color }}">{{ log.get_stress_level_display }}</span></td>
+          <td>{{ log.get_sleep_hours_display }}</td>
+          <td>{{ log.get_physical_activity_display }}</td>
+          <td>{{ log.water_glasses }} glasses</td>
+          <td>
+            <span class="fw-bold {% if log.wellness_score >= 70 %}text-success{% elif log.wellness_score >= 40 %}text-warning{% else %}text-danger{% endif %}">
+              {{ log.wellness_score }}/100
+            </span>
+          </td>
+          <td>
+            {% for s in log.active_symptoms %}
+            <span class="badge bg-danger-subtle text-danger me-1">{{ s }}</span>
+            {% empty %}<span class="text-muted">—</span>{% endfor %}
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'edit_wellness_log' log.pk %}" class="btn btn-sm btn-outline-secondary" style="font-size:.7rem;padding:.15rem .5rem;">Edit</a>
+              <form method="post" action="{% url 'delete_wellness_log' log.pk %}" onsubmit="return confirm('Delete this log?')">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger" style="font-size:.7rem;padding:.15rem .5rem;">×</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center py-5 text-muted">No logs yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

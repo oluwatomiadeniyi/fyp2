@@ -1,0 +1,66 @@
+{% extends "notifications/base_email.html" %}
+{% block subject %}Your Appointment is Confirmed{% endblock %}
+
+{% block body %}
+<p class="greeting">Your Appointment is Confirmed!</p>
+
+<p>
+  Hi {{ appointment.student.first_name }}, great news — your appointment
+  has been confirmed. Please see the details below and make sure to arrive
+  on time.
+</p>
+
+<div class="info-box">
+  <table>
+    <tr>
+      <td>Type</td>
+      <td>{{ appointment.get_appointment_type_display }}</td>
+    </tr>
+    <tr>
+      <td>Date</td>
+      <td><strong>{{ appointment.date|date:"l, d F Y" }}</strong></td>
+    </tr>
+    <tr>
+      <td>Time</td>
+      <td><strong>{{ appointment.time|time:"H:i" }}</strong></td>
+    </tr>
+    <tr>
+      <td>Doctor / Staff</td>
+      <td>
+        {% if appointment.staff %}
+          {{ appointment.staff.get_full_name }}
+          {% if appointment.staff.specialization %}
+            — {{ appointment.staff.specialization }}
+          {% endif %}
+        {% else %}
+          To be assigned
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <td>Location</td>
+      <td>Campus Health Centre</td>
+    </tr>
+  </table>
+</div>
+
+<div class="alert alert-success">
+  <strong>Please remember to:</strong>
+  <ul style="margin-top:6px;padding-left:20px;">
+    <li>Arrive at least 10 minutes early</li>
+    <li>Bring your student ID card</li>
+    <li>Bring any relevant medical documents or previous prescriptions</li>
+  </ul>
+</div>
+
+<p>
+  If you can no longer attend, please cancel your appointment as early
+  as possible so the slot can be given to another student.
+</p>
+
+<div class="btn-container">
+  <a href="http://127.0.0.1:8000/appointments/{{ appointment.pk }}/" class="btn">
+    View Appointment Details
+  </a>
+</div>
+{% endblock %}

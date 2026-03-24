@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}PHQ-9 Result{% endblock %}
+{% block page_title %}Assessment Result{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card text-center">
+      <div class="card-body p-5">
+        <div class="display-1 mb-3">
+          {% if css == 'success' %}😊
+          {% elif css == 'primary' %}🙂
+          {% elif css == 'warning' %}😟
+          {% else %}😔{% endif %}
+        </div>
+        <h4 class="fw-bold mb-1">{{ label }}</h4>
+        <p class="text-muted mb-3">PHQ-9 Score: <strong>{{ assessment.total_score }}/27</strong></p>
+        <span class="badge bg-{{ css }} px-4 py-2 fs-6 mb-4">{{ label }}</span>
+
+        {% if assessment.total_score >= 15 %}
+        <div class="alert alert-danger text-start small mt-3">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          Your score suggests <strong>moderately severe to severe</strong> symptoms.
+          Please visit the health centre and speak with a counsellor as soon as possible.
+        </div>
+        {% elif assessment.total_score >= 10 %}
+        <div class="alert alert-warning text-start small mt-3">
+          <i class="bi bi-info-circle-fill me-2"></i>
+          Your score suggests <strong>moderate</strong> symptoms.
+          Consider booking a mental health consultation.
+        </div>
+        {% endif %}
+
+        <div class="d-flex gap-2 justify-content-center mt-3">
+          <a href="{% url 'book_appointment' %}" class="btn btn-primary">Book Consultation</a>
+          <a href="{% url 'wellness_home' %}" class="btn btn-outline-secondary">Back to Wellness</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

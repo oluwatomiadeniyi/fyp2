@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+{% block title %}Analytics Dashboard{% endblock %}
+{% block page_title %}Analytics & Reports{% endblock %}
+
+{% block content %}
+
+<!-- ── Summary stat cards ──────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:#085041;">
+      <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+      <div class="stat-number">{{ stats.total_students }}</div>
+      <div class="stat-label">Total Students</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:#185fa5;">
+      <div class="stat-icon"><i class="bi bi-person-badge-fill"></i></div>
+      <div class="stat-number">{{ stats.total_staff }}</div>
+      <div class="stat-label">Active Medical Staff</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:#7f4f24;">
+      <div class="stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
+      <div class="stat-number">{{ stats.total_appointments }}</div>
+      <div class="stat-label">Total Appointments</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:#6f42c1;">
+      <div class="stat-icon"><i class="bi bi-journal-medical"></i></div>
+      <div class="stat-number">{{ stats.total_records }}</div>
+      <div class="stat-label">Health Records</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Today / this month quick stats ─────────────────────────── -->
+<div class="row g-3 mb-4">
+  {% for label, val, color in today_stats %}{% endfor %}
+  <div class="col-6 col-md-2">
+    <div class="card text-center p-3">
+      <div class="fw-bold fs-4 text-success">{{ stats.appts_today }}</div>
+      <div class="text-muted small">Appointments Today</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="card text-center p-3">
+      <div class="fw-bold fs-4 text-warning">{{ stats.pending_appts }}</div>
+      <div class="text-muted small">Pending Appointments</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="card text-center p-3">
+      <div class="fw-bold fs-4 text-primary">{{ stats.appts_this_month }}</div>
+      <div class="text-muted small">Appointments (30d)</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="card text-center p-3">
+      <div class="fw-bold fs-4" style="color:#0f6e56;">{{ stats.records_this_month }}</div>
+      <div class="text-muted small">Records (30d)</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="card text-center p-3">
+      <div class="fw-bold fs-4" style="color:#6f42c1;">{{ stats.wellness_logs_month }}</div>
+      <div class="text-muted small">Wellness Logs (30d)</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="card text-center p-3">
+      <div class="fw-bold fs-4 text-danger">{{ stats.pending_staff }}</div>
+      <div class="text-muted small">Staff Pending Approval</div>
+      {% if stats.pending_staff %}
+      <a href="{% url 'pending_staff' %}" class="small text-decoration-none">Review &rarr;</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ── Row 1: Monthly appointments + Appointment status ───────── -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-graph-up me-2"></i>Monthly Appointments (Last 6 Months)
+      </div>
+      <div class="card-body">
+        <canvas id="monthlyChart" height="110"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-pie-chart me-2"></i>Appointment Status
+      </div>
+      <div class="card-body d-flex align-items-center justify-content-center">
+        <canvas id="statusChart" style="max-height:220px;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Row 2: Appointment types + Departments ─────────────────── -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-bar-chart me-2"></i>Appointments by Type
+      </div>
+      <div class="card-body">
+        <canvas id="typeChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-building me-2"></i>Students by Department (Top 8)
+      </div>
+      <div class="card-body">
+        <canvas id="deptChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Row 3: Campus mood trend + Mental health dist ────────────── -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-emoji-smile me-2"></i>Campus Mood & Stress Trend (30 Days)
+      </div>
+      <div class="card-body">
+        <canvas id="moodChart" height="120"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-brain me-2"></i>Mental Health (PHQ-9, 30 Days)
+      </div>
+      <div class="card-body d-flex align-items-center justify-content-center">
+        <canvas id="mhChart" style="max-height:220px;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Row 4: Blood groups + Level distribution + Top diagnoses ── -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-droplet-fill text-danger me-2"></i>Blood Group Distribution
+      </div>
+      <div class="card-body d-flex align-items-center justify-content-center">
+        <canvas id="bgChart" style="max-height:220px;"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-mortarboard me-2"></i>Students by Level
+      </div>
+      <div class="card-body d-flex align-items-center justify-content-center">
+        <canvas id="levelChart" style="max-height:220px;"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-stethoscope me-2"></i>Top Diagnoses
+      </div>
+      <div class="card-body p-0">
+        <ol class="list-group list-group-flush list-group-numbered">
+          {% for d in top_diagnoses %}
+          <li class="list-group-item d-flex justify-content-between align-items-center px-3 py-2">
+            <span class="small">{{ d.diagnosis|truncatechars:40 }}</span>
+            <span class="badge bg-secondary rounded-pill">{{ d.count }}</span>
+          </li>
+          {% empty %}
+          <li class="list-group-item text-center text-muted py-4 small">No records yet.</li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Recent appointments feed ─────────────────────────────────── -->
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center fw-semibold">
+        <span><i class="bi bi-clock-history me-2"></i>Recent Appointments</span>
+        <a href="{% url 'appointment_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+          <thead class="table-light">
+            <tr><th>Student</th><th>Type</th><th>Date</th><th>Staff</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            {% for appt in recent_appts %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ appt.student.get_full_name }}</div>
+                <div class="text-muted" style="font-size:.72rem;">{{ appt.student.matric_number }}</div>
+              </td>
+              <td>{{ appt.get_appointment_type_display }}</td>
+              <td>{{ appt.date|date:"d M Y" }}</td>
+              <td>{{ appt.staff.get_full_name|default:"—" }}</td>
+              <td>
+                <span class="badge bg-{{ appt.get_status_badge_class }}">
+                  {{ appt.get_status_display }}
+                </span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center py-4 text-muted">No appointments yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header fw-semibold d-flex justify-content-between">
+        <span><i class="bi bi-person-badge me-2"></i>Staff Performance</span>
+        <a href="{% url 'staff_report' %}" class="btn btn-sm btn-outline-secondary">Full Report</a>
+      </div>
+      <div class="card-body text-center py-4 text-muted small">
+        <i class="bi bi-bar-chart display-4 d-block mb-2 opacity-25"></i>
+        Click "Full Report" to see per-staff statistics.
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const COLORS = ['#1d9e75','#378ADD','#EF9F27','#E24B4A','#7F77DD','#D85A30','#D4537E','#639922'];
+const PASTEL = ['#9FE1CB','#B5D4F4','#FAC775','#F09595','#AFA9EC','#F0997B','#ED93B1','#C0DD97'];
+
+function mkChart(id, type, labels, datasets, opts={}) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  new Chart(ctx, { type, data: { labels, datasets }, options: { responsive: true, plugins: { legend: { position: 'bottom' } }, ...opts } });
+}
+
+// Monthly appointments (line)
+mkChart('monthlyChart', 'line',
+  {{ monthly_labels|safe }},
+  [{ label: 'Appointments', data: {{ monthly_data|safe }},
+     borderColor: '#1d9e75', backgroundColor: 'rgba(29,158,117,.1)',
+     tension: .4, fill: true, pointRadius: 4 }],
+  { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+);
+
+// Appointment status (doughnut)
+mkChart('statusChart', 'doughnut',
+  {{ appt_status_labels|safe }},
+  [{ data: {{ appt_status_data|safe }}, backgroundColor: COLORS }]
+);
+
+// Appointment type (horizontal bar)
+mkChart('typeChart', 'bar',
+  {{ appt_type_labels|safe }},
+  [{ label: 'Count', data: {{ appt_type_data|safe }},
+     backgroundColor: PASTEL, borderColor: COLORS, borderWidth: 1 }],
+  { indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } }
+);
+
+// Department (bar)
+mkChart('deptChart', 'bar',
+  {{ dept_labels|safe }},
+  [{ label: 'Students', data: {{ dept_data|safe }},
+     backgroundColor: PASTEL, borderColor: COLORS, borderWidth: 1 }],
+  { indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } }
+);
+
+// Mood & Stress trend (line)
+mkChart('moodChart', 'line',
+  {{ mood_labels|safe }},
+  [
+    { label: 'Avg Mood', data: {{ mood_data|safe }}, borderColor: '#1d9e75', tension: .4, pointRadius: 2 },
+    { label: 'Avg Stress', data: {{ stress_data|safe }}, borderColor: '#E24B4A', tension: .4, pointRadius: 2 },
+  ],
+  { scales: { y: { min: 1, max: 5 } } }
+);
+
+// Mental health (doughnut)
+mkChart('mhChart', 'doughnut',
+  {{ mh_labels|safe }},
+  [{ data: {{ mh_data|safe }},
+     backgroundColor: ['#9FE1CB','#B5D4F4','#FAC775','#F09595','#B4B2A9'] }]
+);
+
+// Blood groups (bar)
+mkChart('bgChart', 'bar',
+  {{ bg_labels|safe }},
+  [{ label: 'Students', data: {{ bg_data|safe }},
+     backgroundColor: '#fcebeb', borderColor: '#E24B4A', borderWidth: 1.5 }],
+  { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+);
+
+// Level (doughnut)
+mkChart('levelChart', 'doughnut',
+  {{ level_labels|safe }},
+  [{ data: {{ level_data|safe }}, backgroundColor: COLORS }]
+);
+</script>
+{% endblock %}

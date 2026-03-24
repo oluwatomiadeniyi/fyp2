@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Campus Health & Wellness System{% endblock %}
+
+{% block public_content %}
+<div style="min-height:100vh;background:linear-gradient(135deg,#085041 0%,#1d9e75 100%);">
+  <div class="container py-5">
+
+    <!-- Nav -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+      <h4 class="text-white fw-bold mb-0">
+        <i class="bi bi-heart-pulse-fill me-2"></i>Campus Health
+      </h4>
+      <div class="d-flex gap-2">
+        <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm">Sign In</a>
+        <a href="{% url 'register_student' %}" class="btn btn-light btn-sm fw-semibold">Register</a>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="row align-items-center" style="min-height:60vh;">
+      <div class="col-lg-6 text-white">
+        <span class="badge bg-white text-success fw-semibold mb-3">Student Health Portal</span>
+        <h1 class="display-5 fw-bold mb-3">Your health, managed in one place</h1>
+        <p class="lead opacity-75 mb-4">
+          Book appointments, access your medical records, track your wellness,
+          and connect with campus health professionals — all from your phone or laptop.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="{% url 'register_student' %}" class="btn btn-white btn-lg fw-semibold"
+             style="background:#fff;color:#085041;">
+            <i class="bi bi-person-plus me-2"></i>Create Student Account
+          </a>
+          <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
+            Sign In
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-5 offset-lg-1 mt-5 mt-lg-0">
+        <!-- Feature cards -->
+        {% for icon, title, desc in features %}
+        {% endfor %}
+        <div class="row g-3">
+          {% for item in feature_list %}
+          <div class="col-6">
+            <div class="card border-0 h-100" style="background:rgba(255,255,255,.12);backdrop-filter:blur(8px);">
+              <div class="card-body text-white p-3">
+                <i class="bi bi-{{ item.0 }} fs-4 mb-2 d-block" style="color:#9fe1cb;"></i>
+                <div class="fw-semibold small">{{ item.1 }}</div>
+                <div class="opacity-75" style="font-size:.78rem;">{{ item.2 }}</div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+          <div class="col-6">
+            <div class="card border-0 h-100" style="background:rgba(255,255,255,.12);">
+              <div class="card-body text-white p-3">
+                <i class="bi bi-calendar-check fs-4 mb-2 d-block" style="color:#9fe1cb;"></i>
+                <div class="fw-semibold small">Appointments</div>
+                <div class="opacity-75" style="font-size:.78rem;">Book & manage visits</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="card border-0 h-100" style="background:rgba(255,255,255,.12);">
+              <div class="card-body text-white p-3">
+                <i class="bi bi-journal-medical fs-4 mb-2 d-block" style="color:#9fe1cb;"></i>
+                <div class="fw-semibold small">Health Records</div>
+                <div class="opacity-75" style="font-size:.78rem;">Your medical history</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="card border-0 h-100" style="background:rgba(255,255,255,.12);">
+              <div class="card-body text-white p-3">
+                <i class="bi bi-emoji-smile fs-4 mb-2 d-block" style="color:#9fe1cb;"></i>
+                <div class="fw-semibold small">Wellness Tracker</div>
+                <div class="opacity-75" style="font-size:.78rem;">Monitor mood & fitness</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="card border-0 h-100" style="background:rgba(255,255,255,.12);">
+              <div class="card-body text-white p-3">
+                <i class="bi bi-shield-check fs-4 mb-2 d-block" style="color:#9fe1cb;"></i>
+                <div class="fw-semibold small">Secure & Private</div>
+                <div class="opacity-75" style="font-size:.78rem;">Your data is protected</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="card border-0 h-100" style="background:rgba(255,255,255,.12);">
+              <div class="card-body text-white p-3">
+                <i class="bi bi-bell fs-4 mb-2 d-block" style="color:#9fe1cb;"></i>
+                <div class="fw-semibold small">Reminders</div>
+                <div class="opacity-75" style="font-size:.78rem;">Never miss an appointment</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer note -->
+    <p class="text-center text-white opacity-50 mt-5 small">
+      Are you a medical staff member?
+      <a href="{% url 'register_staff' %}" class="text-white">Apply for a staff account</a>
+    </p>
+
+  </div>
+</div>
+{% endblock %}

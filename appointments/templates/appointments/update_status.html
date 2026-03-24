@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Update Appointment{% endblock %}
+{% block page_title %}Update Appointment{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-7">
+    <div class="card mb-3">
+      <div class="card-header">
+        <i class="bi bi-pencil me-2"></i>Update — {{ appt.get_appointment_type_display }}
+        <span class="text-muted small ms-2">{{ appt.date|date:"d M Y" }} at {{ appt.time|time:"H:i" }}</span>
+      </div>
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Status</label>
+              {{ form.status }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Follow-up Date</label>
+              {{ form.follow_up_date }}
+              <div class="form-text">{{ form.follow_up_date.help_text }}</div>
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Clinical Notes</label>
+              {{ form.notes }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Diagnosis</label>
+              {{ form.diagnosis }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Prescription</label>
+              {{ form.prescription }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Referred To (if applicable)</label>
+              {{ form.referred_to }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Cancellation Reason</label>
+              {{ form.cancellation_reason }}
+              <div class="form-text">Fill only if cancelling.</div>
+            </div>
+          </div>
+          <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+            <a href="{% url 'appointment_detail' appt.pk %}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Patient quick-view -->
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header small fw-semibold"><i class="bi bi-person me-2"></i>Patient Summary</div>
+      <div class="card-body small">
+        <dl class="row mb-0">
+          <dt class="col-5 text-muted">Name</dt>
+          <dd class="col-7 fw-semibold">{{ appt.student.get_full_name }}</dd>
+          <dt class="col-5 text-muted">Matric</dt>
+          <dd class="col-7">{{ appt.student.matric_number }}</dd>
+          <dt class="col-5 text-muted">Blood Group</dt>
+          <dd class="col-7">{{ appt.student.blood_group|default:"Unknown" }}</dd>
+          <dt class="col-5 text-muted">Allergies</dt>
+          <dd class="col-7">{{ appt.student.allergies|default:"None" }}</dd>
+          <dt class="col-5 text-muted">Conditions</dt>
+          <dd class="col-7">{{ appt.student.chronic_conditions|default:"None" }}</dd>
+        </dl>
+        <hr>
+        <p class="fw-semibold mb-1">Reason for visit</p>
+        <p>{{ appt.reason }}</p>
+        {% if appt.symptoms %}
+        <p class="fw-semibold mb-1">Symptoms</p>
+        <p>{{ appt.symptoms }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

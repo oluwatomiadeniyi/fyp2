@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Wellness Summary — {{ student.get_full_name }}{% endblock %}
+{% block page_title %}Student Wellness Summary{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-4">
+  <a href="{% url 'student_detail' student.pk %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Student Profile
+  </a>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <h5 class="fw-bold mb-0">{{ student.get_full_name }}</h5>
+    <p class="text-muted small mb-0">{{ student.matric_number }} &middot; {{ student.department }}</p>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="card text-center p-3">
+    <div class="text-muted small">Avg Mood (30d)</div>
+    <div class="fw-bold fs-4" style="color:#0f6e56;">
+      {% if avg.avg_mood %}{{ avg.avg_mood|floatformat:1 }}/5{% else %}—{% endif %}
+    </div>
+  </div></div>
+  <div class="col-md-3"><div class="card text-center p-3">
+    <div class="text-muted small">Avg Stress (30d)</div>
+    <div class="fw-bold fs-4" style="color:#ba7517;">
+      {% if avg.avg_stress %}{{ avg.avg_stress|floatformat:1 }}/5{% else %}—{% endif %}
+    </div>
+  </div></div>
+  <div class="col-md-3"><div class="card text-center p-3">
+    <div class="text-muted small">Logs (30d)</div>
+    <div class="fw-bold fs-4">{{ logs.count }}</div>
+  </div></div>
+  <div class="col-md-3"><div class="card text-center p-3">
+    <div class="text-muted small">Latest PHQ-9</div>
+    <div class="fw-bold fs-4">
+      {% if latest_mh %}
+      <span class="badge bg-{{ latest_mh.severity.1 }}">{{ latest_mh.severity.0 }}</span>
+      {% else %}—{% endif %}
+    </div>
+  </div></div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header fw-semibold"><i class="bi bi-graph-up me-2"></i>30-Day Trend</div>
+  <div class="card-body">
+    {% if chart_labels != "[]" %}
+    <canvas id="studentWellnessChart" height="100"></canvas>
+    {% else %}
+    <div class="text-center py-4 text-muted">No data in the last 30 days.</div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header fw-semibold"><i class="bi bi-clock-history me-2"></i>Recent Logs</div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead class="table-light">
+        <tr><th>Date</th><th>Mood</th><th>Stress</th><th>Sleep</th><th>Score</th><th>Symptoms</th></tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td>{{ log.date|date:"d M Y" }}</td>
+          <td><span class="badge bg-{{ log.get_mood_color }}">{{ log.get_mood_display }}</span></td>
+          <td><span class="badge bg-{{ log.get_stress_color }}">{{ log.get_stress_level_display }}</span></td>
+          <td>{{ log.get_sleep_hours_display }}</td>
+          <td class="fw-bold {% if log.wellness_score >= 70 %}text-success{% elif log.wellness_score >= 40 %}text-warning{% else %}text-danger{% endif %}">
+            {{ log.wellness_score }}/100
+          </td>
+          <td>{% for s in log.active_symptoms %}<span class="badge bg-danger-subtle text-danger me-1">{{ s }}</span>{% empty %}—{% endfor %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center py-4 text-muted">No logs found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const labels = {{ chart_labels|safe }};
+if (labels.length) {
+  new Chart(document.getElementById('studentWellnessChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Mood', data: {{ mood_data|safe }}, borderColor: '#1d9e75', tension: .4, pointRadius: 3 },
+        { label: 'Stress', data: {{ stress_data|safe }}, borderColor: '#E24B4A', tension: .4, pointRadius: 3 },
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { min: 1, max: 5 } },
+      plugins: { legend: { position: 'bottom' } },
+    }
+  });
+}
+</script>
+{% endblock %}

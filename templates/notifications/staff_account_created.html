@@ -1,0 +1,56 @@
+{% extends "notifications/base_email.html" %}
+{% block subject %}Your Campus Health Staff Account{% endblock %}
+
+{% block body %}
+<p class="greeting">Welcome to the Health Centre Team!</p>
+
+<p>
+  Hi {{ user.first_name }}, your medical staff account on the Campus
+  Health &amp; Wellness Management System has been created by an
+  administrator. You can log in immediately using the credentials below.
+</p>
+
+<div class="info-box">
+  <table>
+    <tr>
+      <td>Full Name</td>
+      <td>{{ user.get_full_name }}</td>
+    </tr>
+    <tr>
+      <td>Staff ID</td>
+      <td>{{ user.staff_id|default:"—" }}</td>
+    </tr>
+    <tr>
+      <td>Specialization</td>
+      <td>{{ user.specialization|default:"—" }}</td>
+    </tr>
+    <tr>
+      <td>Username</td>
+      <td><strong>{{ user.username }}</strong></td>
+    </tr>
+    <tr>
+      <td>Password</td>
+      <td><strong>{{ plain_password }}</strong></td>
+    </tr>
+  </table>
+</div>
+
+<div class="alert alert-warning">
+  <strong>Security:</strong> Please change your password immediately
+  after your first login. Go to My Profile → Change Password.
+</div>
+
+<p>With your staff account you can:</p>
+<ul style="color:#495057;padding-left:20px;margin-bottom:14px;">
+  <li style="margin-bottom:6px;">View and manage your daily appointment schedule</li>
+  <li style="margin-bottom:6px;">Write health records and prescriptions for students</li>
+  <li style="margin-bottom:6px;">Access patient medical history</li>
+  <li style="margin-bottom:6px;">Manage your availability for appointments</li>
+</ul>
+
+<div class="btn-container">
+  <a href="http://127.0.0.1:8000/login/" class="btn">
+    Log In Now
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block subject %}Campus Health{% endblock %}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #f4f6f9;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 15px;
+      color: #212529;
+      line-height: 1.6;
+    }
+    .wrapper {
+      max-width: 600px;
+      margin: 32px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    }
+    /* Header */
+    .header {
+      background: #085041;
+      padding: 28px 32px;
+      text-align: center;
+    }
+    .header .logo {
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -.3px;
+    }
+    .header .logo span { color: #5dcaa5; }
+    .header .tagline {
+      color: rgba(255,255,255,.65);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    /* Body */
+    .body { padding: 36px 32px; }
+    .greeting {
+      font-size: 18px;
+      font-weight: 600;
+      color: #085041;
+      margin-bottom: 12px;
+    }
+    p { margin-bottom: 14px; color: #495057; }
+    /* Info box */
+    .info-box {
+      background: #f8f9fa;
+      border-left: 4px solid #085041;
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin: 20px 0;
+    }
+    .info-box table { width: 100%; border-collapse: collapse; }
+    .info-box td {
+      padding: 5px 0;
+      font-size: 14px;
+      color: #495057;
+    }
+    .info-box td:first-child {
+      color: #6c757d;
+      width: 38%;
+      font-weight: 500;
+    }
+    .info-box td:last-child { font-weight: 600; color: #212529; }
+    /* Alert boxes */
+    .alert {
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    .alert-success { background: #e1f5ee; color: #085041; border: 1px solid #9fe1cb; }
+    .alert-warning { background: #faeeda; color: #633806; border: 1px solid #fac775; }
+    .alert-danger  { background: #fcebeb; color: #a32d2d; border: 1px solid #f09595; }
+    .alert-info    { background: #e6f1fb; color: #0c447c; border: 1px solid #b5d4f4; }
+    /* CTA Button */
+    .btn-container { text-align: center; margin: 28px 0; }
+    .btn {
+      display: inline-block;
+      background: #085041;
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 13px 32px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    /* Prescription table */
+    .rx-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    .rx-table th {
+      background: #085041;
+      color: #fff;
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .rx-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #e9ecef;
+      color: #495057;
+    }
+    .rx-table tr:last-child td { border-bottom: none; }
+    .rx-table tr:nth-child(even) td { background: #f8f9fa; }
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid #e9ecef;
+      margin: 24px 0;
+    }
+    /* Footer */
+    .footer {
+      background: #f8f9fa;
+      padding: 20px 32px;
+      text-align: center;
+      border-top: 1px solid #e9ecef;
+    }
+    .footer p {
+      font-size: 12px;
+      color: #adb5bd;
+      margin-bottom: 4px;
+    }
+    .footer a { color: #085041; text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">&#10084; Campus <span>Health</span> &amp; Wellness</div>
+    <div class="tagline">University Health Management System</div>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+    {% block body %}{% endblock %}
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>This email was sent by the Campus Health &amp; Wellness Management System.</p>
+    <p>Please do not reply to this email. For queries, visit the health centre.</p>
+    <p style="margin-top:8px;">
+      &copy; {% now "Y" %} Campus Health &amp; Wellness. All rights reserved.
+    </p>
+  </div>
+
+</div>
+</body>
+</html>

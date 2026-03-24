@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}My Patients{% endblock %}
+{% block page_title %}My Assigned Patients{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <p class="text-muted small mb-0">
+    {{ patient_data|length }} patient{{ patient_data|length|pluralize }} assigned to you
+  </p>
+  <a href="{% url 'today_appointments' %}" class="btn btn-sm btn-outline-primary">
+    <i class="bi bi-calendar-day me-1"></i>Today's Schedule
+  </a>
+</div>
+
+{% if patient_data %}
+<div class="row g-3">
+  {% for item in patient_data %}
+  <div class="col-md-6 col-xl-4">
+    <div class="card h-100">
+      <div class="card-body p-4">
+
+        <!-- Patient header -->
+        <div class="d-flex align-items-center gap-3 mb-3">
+          {% if item.patient.profile_photo %}
+          <img src="{{ item.patient.profile_photo.url }}"
+               class="rounded-circle flex-shrink-0"
+               style="width:48px;height:48px;object-fit:cover;" alt="">
+          {% else %}
+          <div class="rounded-circle d-flex align-items-center justify-content-center
+                      fw-bold flex-shrink-0"
+               style="width:48px;height:48px;background:#e1f5ee;
+                      color:#085041;font-size:1rem;">
+            {{ item.patient.first_name|first|upper }}{{ item.patient.last_name|first|upper }}
+          </div>
+          {% endif %}
+          <div>
+            <a href="{% url 'student_detail' item.patient.pk %}"
+               class="fw-semibold text-decoration-none d-block">
+              {{ item.patient.get_full_name }}
+            </a>
+            <div class="text-muted small">{{ item.patient.matric_number|default:"—" }}</div>
+          </div>
+        </div>
+
+        <!-- Medical quick info -->
+        <div class="row g-1 mb-3" style="font-size:.75rem;">
+          {% if item.patient.blood_group and item.patient.blood_group != 'unknown' %}
+          <div class="col-auto">
+            <span class="badge px-2" style="background:#fcebeb;color:#a32d2d;">
+              <i class="bi bi-droplet-fill me-1"></i>{{ item.patient.blood_group }}
+            </span>
+          </div>
+          {% endif %}
+          {% if item.patient.allergies and item.patient.allergies != 'None' %}
+          <div class="col-12 mt-1">
+            <span class="badge bg-warning text-dark px-2" style="font-size:.7rem;white-space:normal;">
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              {{ item.patient.allergies|truncatechars:50 }}
+            </span>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Upcoming appointment -->
+        {% if item.upcoming %}
+        <div class="alert py-2 mb-3 small d-flex align-items-center gap-2"
+             style="background:#e1f5ee;border:1px solid #9fe1cb;color:#085041;">
+          <i class="bi bi-calendar-check-fill flex-shrink-0"></i>
+          <div>
+            <div class="fw-semibold">
+              Upcoming: {{ item.upcoming.date|date:"d M Y" }}
+              at {{ item.upcoming.time|time:"H:i" }}
+            </div>
+            <div>{{ item.upcoming.get_appointment_type_display }}</div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Last visit -->
+        {% if item.latest %}
+        <p class="text-muted mb-3" style="font-size:.75rem;">
+          <i class="bi bi-clock-history me-1"></i>
+          Last visit: {{ item.latest.date|date:"d M Y" }} —
+          {{ item.latest.get_appointment_type_display }}
+          <span class="badge bg-{{ item.latest.get_status_badge_class }} ms-1"
+                style="font-size:.65rem;">
+            {{ item.latest.get_status_display }}
+          </span>
+        </p>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="d-flex gap-2 flex-wrap">
+          <a href="{% url 'student_detail' item.patient.pk %}"
+             class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-person-vcard me-1"></i>Profile
+          </a>
+          <a href="{% url 'student_history' item.patient.pk %}"
+             class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-journal-medical me-1"></i>Records
+          </a>
+          {% if item.upcoming %}
+          <a href="{% url 'appointment_detail' item.upcoming.pk %}"
+             class="btn btn-sm btn-success">
+            <i class="bi bi-calendar-check me-1"></i>View Appt
+          </a>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5 text-muted">
+    <i class="bi bi-people display-4 d-block mb-2 opacity-25"></i>
+    No patients assigned to you yet.
+    <p class="small mt-2">
+      When the admin assigns appointments to you, your patients will appear here.
+    </p>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Sign In — Campus Health{% endblock %}
+
+{% block public_content %}
+<div class="min-vh-100 d-flex" style="background:#f4f6f9;">
+
+  <!-- Left panel -->
+  <div class="d-none d-lg-flex flex-column justify-content-center align-items-center p-5"
+       style="width:420px;background:linear-gradient(160deg,#085041,#1d9e75);flex-shrink:0;">
+    <i class="bi bi-heart-pulse-fill display-3 text-white mb-4"></i>
+    <h3 class="text-white fw-bold text-center mb-3">Campus Health & Wellness</h3>
+    <p class="text-white opacity-75 text-center">
+      Your one-stop portal for all health and wellness services on campus.
+    </p>
+    <div class="mt-4 w-100">
+      <div class="rounded-3 p-3 mb-2" style="background:rgba(255,255,255,.1);">
+        <div class="text-white small fw-semibold mb-1">
+          <i class="bi bi-mortarboard me-2"></i>Students
+        </div>
+        <div class="text-white opacity-75" style="font-size:.78rem;">
+          Book appointments, view health records, track wellness
+        </div>
+      </div>
+      <div class="rounded-3 p-3 mb-2" style="background:rgba(255,255,255,.1);">
+        <div class="text-white small fw-semibold mb-1">
+          <i class="bi bi-hospital me-2"></i>Medical Staff
+        </div>
+        <div class="text-white opacity-75" style="font-size:.78rem;">
+          Manage appointments, write health records, view patient history
+        </div>
+      </div>
+      <div class="rounded-3 p-3" style="background:rgba(255,255,255,.1);">
+        <div class="text-white small fw-semibold mb-1">
+          <i class="bi bi-bar-chart-line me-2"></i>Administrators
+        </div>
+        <div class="text-white opacity-75" style="font-size:.78rem;">
+          System analytics, staff management, full oversight
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="flex-grow-1 d-flex justify-content-center align-items-center p-4">
+    <div style="width:100%;max-width:420px;">
+
+      <div class="text-center mb-4">
+        <!-- Mobile logo -->
+        <i class="bi bi-heart-pulse-fill d-lg-none mb-2"
+           style="font-size:2rem;color:#0f6e56;display:block!important;"></i>
+        <h4 class="fw-bold">Welcome back</h4>
+        <p class="text-muted small mb-0">Sign in to your campus health account</p>
+      </div>
+
+      <!-- Login form -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger py-2 small">
+              <i class="bi bi-exclamation-circle me-2"></i>{{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold small" for="{{ form.username.id_for_label }}">
+                Username
+              </label>
+              {{ form.username }}
+              {% if form.username.errors %}
+              <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold small" for="{{ form.password.id_for_label }}">
+                Password
+              </label>
+              <div class="input-group">
+                {{ form.password }}
+                <button class="btn btn-outline-secondary" type="button"
+                        onclick="togglePwd(this)" title="Show/hide password">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+              {% if form.password.errors %}
+              <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-lg w-100 fw-semibold text-white"
+                    style="background:#0f6e56;">
+              <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Registration options -->
+      <div class="card border-0" style="background:#fff;">
+        <div class="card-body p-4">
+          <p class="text-center text-muted small fw-semibold mb-3">Create a new account</p>
+          <div class="d-grid gap-2">
+
+            <a href="{% url 'register_student' %}"
+               class="btn btn-outline-success d-flex align-items-center gap-2">
+              <i class="bi bi-mortarboard-fill"></i>
+              <div class="text-start">
+                <div class="fw-semibold small">Register as a Student</div>
+                <div class="text-muted" style="font-size:.72rem;">Book appointments &amp; track your health</div>
+              </div>
+            </a>
+
+            <div class="btn btn-outline-secondary d-flex align-items-center gap-2"
+                 style="cursor:default;opacity:.6;">
+              <i class="bi bi-hospital-fill"></i>
+              <div class="text-start">
+                <div class="fw-semibold small">Medical Staff</div>
+                <div class="text-muted" style="font-size:.72rem;">Accounts are created by administrators only</div>
+              </div>
+            </div>
+
+          </div>
+          <p class="text-center text-muted mt-3 mb-0" style="font-size:.72rem;">
+            <i class="bi bi-info-circle me-1"></i>
+            Medical staff accounts are created by the system administrator.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePwd(btn) {
+  const inp = btn.previousElementSibling;
+  const isText = inp.type === 'text';
+  inp.type = isText ? 'password' : 'text';
+  btn.querySelector('i').className = isText ? 'bi bi-eye' : 'bi bi-eye-slash';
+}
+</script>
+{% endblock %}

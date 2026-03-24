@@ -1,0 +1,62 @@
+{% extends "notifications/base_email.html" %}
+{% block subject %}New Appointment Assigned — {{ appointment.date|date:"d M Y" }}{% endblock %}
+
+{% block body %}
+<p class="greeting">New Appointment Assigned to You</p>
+
+<p>
+  Hi {{ appointment.staff.first_name }}, a new appointment has been
+  assigned to you by the administrator.
+</p>
+
+<div class="info-box">
+  <table>
+    <tr>
+      <td>Patient</td>
+      <td>{{ appointment.student.get_full_name }}</td>
+    </tr>
+    <tr>
+      <td>Matric No.</td>
+      <td>{{ appointment.student.matric_number|default:"—" }}</td>
+    </tr>
+    <tr>
+      <td>Department</td>
+      <td>{{ appointment.student.department|default:"—" }}</td>
+    </tr>
+    <tr>
+      <td>Type</td>
+      <td>{{ appointment.get_appointment_type_display }}</td>
+    </tr>
+    <tr>
+      <td>Date</td>
+      <td><strong>{{ appointment.date|date:"l, d F Y" }}</strong></td>
+    </tr>
+    <tr>
+      <td>Time</td>
+      <td><strong>{{ appointment.time|time:"H:i" }}</strong></td>
+    </tr>
+    <tr>
+      <td>Priority</td>
+      <td>{{ appointment.get_priority_display }}</td>
+    </tr>
+  </table>
+</div>
+
+{% if appointment.student.allergies and appointment.student.allergies != 'None' %}
+<div class="alert alert-warning">
+  <strong>Allergy Alert:</strong> {{ appointment.student.allergies }}
+</div>
+{% endif %}
+
+<p><strong>Reason for visit:</strong><br>{{ appointment.reason }}</p>
+
+{% if appointment.symptoms %}
+<p><strong>Reported symptoms:</strong><br>{{ appointment.symptoms }}</p>
+{% endif %}
+
+<div class="btn-container">
+  <a href="http://127.0.0.1:8000/appointments/{{ appointment.pk }}/" class="btn">
+    View Appointment
+  </a>
+</div>
+{% endblock %}

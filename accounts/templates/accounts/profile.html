@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+{% block title %}My Profile — Campus Health{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+
+<!-- Profile header card -->
+<div class="card mb-4">
+  <div class="card-body p-4">
+    <div class="d-flex align-items-center gap-4 flex-wrap">
+      <!-- Avatar -->
+      {% if user.profile_photo %}
+        <img src="{{ user.profile_photo.url }}" class="profile-avatar-lg" alt="Profile photo">
+      {% else %}
+        <div class="profile-avatar-lg d-flex align-items-center justify-content-center"
+             style="background:var(--primary-light);color:var(--primary);font-size:2.5rem;font-weight:700;">
+          {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+        </div>
+      {% endif %}
+
+      <!-- Info -->
+      <div>
+        <h4 class="fw-bold mb-1">{{ user.get_full_name|default:user.username }}</h4>
+        {% if user.is_student %}
+          <p class="text-muted mb-1">
+            <i class="bi bi-mortarboard me-1"></i>
+            {{ user.matric_number|default:"Matric number not set" }}
+            {% if user.department %} &nbsp;·&nbsp; {{ user.department }}{% endif %}
+            {% if user.level %} &nbsp;·&nbsp; {{ user.level }} Level{% endif %}
+          </p>
+          <p class="text-muted mb-2 small">
+            {% if user.hall_of_residence %}<i class="bi bi-house me-1"></i>{{ user.hall_of_residence }}{% endif %}
+            {% if user.faculty %}&nbsp;·&nbsp;<i class="bi bi-building me-1"></i>{{ user.faculty }}{% endif %}
+          </p>
+        {% elif user.is_medical_staff %}
+          <p class="text-muted mb-1">
+            <i class="bi bi-hospital me-1"></i>{{ user.specialization|default:"Medical Staff" }}
+          </p>
+        {% endif %}
+
+        <div class="d-flex gap-2 flex-wrap mt-1">
+          <span class="badge rounded-pill px-3 py-1 fw-normal"
+                style="background:#e1f5ee;color:#085041;">{{ user.get_role_display }}</span>
+          {% if user.blood_group and user.blood_group != 'unknown' %}
+          <span class="badge rounded-pill px-3 py-1 fw-normal"
+                style="background:#fcebeb;color:#a32d2d;">
+            <i class="bi bi-droplet-fill me-1"></i>{{ user.blood_group }}
+          </span>
+          {% endif %}
+          {% if user.genotype and user.genotype != 'unknown' %}
+          <span class="badge rounded-pill px-3 py-1 fw-normal"
+                style="background:#faeeda;color:#633806;">Genotype {{ user.genotype }}</span>
+          {% endif %}
+          {% if not user.profile_complete %}
+          <span class="badge rounded-pill px-3 py-1 fw-normal bg-warning text-dark">
+            <i class="bi bi-exclamation-triangle me-1"></i>Profile incomplete
+          </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-4" id="profileTabs">
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'personal' %}active{% endif %}"
+       href="{% url 'profile_personal' %}">
+      <i class="bi bi-person me-1"></i>Personal
+    </a>
+  </li>
+  {% if user.is_student %}
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'academic' %}active{% endif %}"
+       href="{% url 'profile_academic' %}">
+      <i class="bi bi-mortarboard me-1"></i>Academic
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'medical' %}active{% endif %}"
+       href="{% url 'profile_medical' %}">
+      <i class="bi bi-heart-pulse me-1"></i>Medical
+    </a>
+  </li>
+  {% endif %}
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'emergency' %}active{% endif %}"
+       href="{% url 'profile_emergency' %}">
+      <i class="bi bi-telephone-fill me-1"></i>Emergency Contacts
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'settings' %}active{% endif %}"
+       href="{% url 'profile_settings' %}">
+      <i class="bi bi-gear me-1"></i>Settings
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'password' %}active{% endif %}"
+       href="{% url 'change_password' %}">
+      <i class="bi bi-shield-lock me-1"></i>Password
+    </a>
+  </li>
+</ul>
+
+<!-- ── Tab content ─────────────────────────────────────────────────── -->
+
+{% if active_tab == 'emergency' %}
+<!-- Emergency contacts tab — no form, just a list + add button -->
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-telephone-fill me-2 text-danger"></i>Emergency Contacts</span>
+    <a href="{% url 'add_emergency_contact' %}" class="btn btn-sm btn-outline-success">
+      <i class="bi bi-plus-lg me-1"></i>Add Contact
+    </a>
+  </div>
+  <div class="card-body p-0">
+    {% if contacts %}
+    <div class="list-group list-group-flush">
+      {% for contact in contacts %}
+      <div class="list-group-item px-4 py-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="fw-semibold">
+              {{ contact.name }}
+              {% if contact.is_primary %}
+              <span class="badge bg-success ms-2 fw-normal">Primary</span>
+              {% endif %}
+            </div>
+            <div class="text-muted small">{{ contact.get_relationship_display }}</div>
+            <div class="mt-1 small">
+              <i class="bi bi-telephone me-1"></i>{{ contact.phone }}
+              {% if contact.alt_phone %} &nbsp;/&nbsp; {{ contact.alt_phone }}{% endif %}
+              {% if contact.email %}<br><i class="bi bi-envelope me-1"></i>{{ contact.email }}{% endif %}
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'edit_emergency_contact' contact.pk %}"
+               class="btn btn-sm btn-outline-secondary">Edit</a>
+            <form method="post" action="{% url 'delete_emergency_contact' contact.pk %}"
+                  onsubmit="return confirm('Remove this contact?')">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger">Remove</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-person-x display-4 d-block mb-2"></i>
+      No emergency contacts added yet.<br>
+      <a href="{% url 'add_emergency_contact' %}" class="mt-2 d-inline-block">Add your first contact</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% elif active_tab == 'settings' %}
+<div class="row">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-bell me-2"></i>Notification Preferences</div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="form-check form-switch mb-3">
+            {{ form.email_notifications }}
+            <label class="form-check-label" for="{{ form.email_notifications.id_for_label }}">
+              Email notifications
+              <small class="d-block text-muted">Appointment reminders and updates via email</small>
+            </label>
+          </div>
+          <div class="form-check form-switch mb-4">
+            {{ form.sms_notifications }}
+            <label class="form-check-label" for="{{ form.sms_notifications.id_for_label }}">
+              SMS notifications
+              <small class="d-block text-muted">Text message reminders to your phone</small>
+            </label>
+          </div>
+          <button type="submit" class="btn btn-success">Save Preferences</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<!-- Personal / Academic / Medical / Password tabs — all have a form -->
+<div class="card">
+  <div class="card-header">
+    {% if active_tab == 'personal' %}<i class="bi bi-person me-2"></i>Personal Information
+    {% elif active_tab == 'academic' %}<i class="bi bi-mortarboard me-2"></i>Academic Information
+    {% elif active_tab == 'medical' %}<i class="bi bi-heart-pulse me-2"></i>Medical Information
+    {% elif active_tab == 'password' %}<i class="bi bi-shield-lock me-2"></i>Change Password
+    {% endif %}
+  </div>
+  <div class="card-body p-4">
+
+    {% if active_tab == 'medical' %}
+    <div class="alert alert-info d-flex gap-2 align-items-start small mb-4">
+      <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
+      <span>This information is kept strictly confidential and is only accessible to authorised medical staff.</span>
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+
+      {% if active_tab == 'medical' %}
+      <!-- Medical form has sections -->
+      <h6 class="fw-bold mb-3 text-muted small text-uppercase">Vital Statistics</h6>
+      <div class="row g-3 mb-4">
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Blood Group</label>
+          {{ form.blood_group }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Genotype</label>
+          {{ form.genotype }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Height (cm)</label>
+          {{ form.height_cm }}
+          {% if user.get_bmi %}<div class="form-text">BMI: <strong>{{ user.get_bmi }}</strong> — {{ user.bmi_category }}</div>{% endif %}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Weight (kg)</label>
+          {{ form.weight_kg }}
+        </div>
+      </div>
+
+      <h6 class="fw-bold mb-3 text-muted small text-uppercase">Medical History</h6>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Known Allergies</label>
+          {{ form.allergies }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Chronic Conditions / Disabilities</label>
+          {{ form.chronic_conditions }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Current Medications</label>
+          {{ form.current_medications }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Past Surgeries / Hospitalisations</label>
+          {{ form.past_surgeries }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Disability / Special Needs</label>
+          {{ form.disability }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">HIV Status (confidential)</label>
+          {{ form.hiv_status }}
+        </div>
+        <div class="col-md-4 d-flex align-items-center">
+          <div class="form-check">
+            {{ form.immunization_up_to_date }}
+            <label class="form-check-label small" for="{{ form.immunization_up_to_date.id_for_label }}">
+              Immunisations up to date
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <h6 class="fw-bold mb-3 text-muted small text-uppercase">Health Insurance</h6>
+      <div class="row g-3 mb-4">
+        <div class="col-md-2 d-flex align-items-center">
+          <div class="form-check">
+            {{ form.has_nhis }}
+            <label class="form-check-label small" for="{{ form.has_nhis.id_for_label }}">Has NHIS?</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold">NHIS Number</label>
+          {{ form.nhis_number }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Other Insurance Provider</label>
+          {{ form.insurance_provider }}
+        </div>
+      </div>
+
+      {% else %}
+      <!-- Auto-render other forms field by field -->
+      {% for field in form %}
+      <div class="mb-3">
+        <label class="form-label small fw-semibold" for="{{ field.id_for_label }}">
+          {{ field.label }}{% if field.field.required %} *{% endif %}
+        </label>
+        {{ field }}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+        {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      {% endif %}
+
+      <div class="mt-3">
+        <button type="submit" class="btn btn-success px-4">
+          <i class="bi bi-check-lg me-1"></i>Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

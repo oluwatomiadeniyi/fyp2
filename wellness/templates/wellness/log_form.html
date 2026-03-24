@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — Campus Health{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Symptom toggle buttons */
+  .symptom-toggle { display: none; }
+  .symptom-toggle + label {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .55rem 1rem;
+    border: 1.5px solid #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: .875rem;
+    transition: all .15s;
+    user-select: none;
+    background: #fff;
+    color: #495057;
+  }
+  .symptom-toggle + label:hover {
+    border-color: #0f6e56;
+    color: #0f6e56;
+    background: #f0faf6;
+  }
+  .symptom-toggle:checked + label {
+    background: #fcebeb;
+    border-color: #E24B4A;
+    color: #a32d2d;
+    font-weight: 600;
+  }
+  .symptom-toggle:checked + label .sym-icon { color: #E24B4A; }
+
+  /* Rating buttons for mood/stress */
+  .rating-group { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .rating-radio { display: none; }
+  .rating-label {
+    padding: .45rem 1rem;
+    border: 1.5px solid #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: .85rem;
+    transition: all .15s;
+    background: #fff;
+  }
+  .rating-label:hover { border-color: #0f6e56; color: #0f6e56; }
+  .mood-radio:checked + .rating-label   { background: #e1f5ee; border-color: #0f6e56; color: #085041; font-weight: 600; }
+  .stress-radio:checked + .rating-label { background: #faeeda; border-color: #ba7517; color: #633806; font-weight: 600; }
+
+  /* Section header style */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    font-weight: 600;
+    font-size: .95rem;
+    color: #212529;
+    margin-bottom: 1.25rem;
+    padding-bottom: .6rem;
+    border-bottom: 2px solid #f0faf6;
+  }
+  .section-header i { color: #0f6e56; font-size: 1.1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Back link -->
+<div class="mb-4">
+  <a href="{% url 'wellness_home' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Back to Wellness
+  </a>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-xl-9">
+
+    <form method="POST" action="" novalidate id="wellness-log-form">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger mb-4">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <!-- ══ DATE ══════════════════════════════════════════════════ -->
+      <div class="card mb-4">
+        <div class="card-body p-4">
+          <div class="row align-items-end g-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold" for="{{ form.date.id_for_label }}">
+                <i class="bi bi-calendar3 me-1 text-success"></i>Log Date
+              </label>
+              {{ form.date }}
+              {% if form.date.errors %}
+              <div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-8">
+              <div class="alert alert-info py-2 mb-0 small d-flex align-items-center gap-2">
+                <i class="bi bi-info-circle-fill flex-shrink-0"></i>
+                This check-in takes about 60 seconds. Your answers are private unless flagged for clinical review.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MOOD & FEELINGS ════════════════════════════════════════ -->
+      <div class="card mb-4">
+        <div class="card-body p-4">
+          <div class="section-header">
+            <i class="bi bi-emoji-smile-fill"></i> How are you feeling today?
+          </div>
+
+          <div class="row g-4">
+
+            <!-- Mood -->
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold mb-2">
+                Overall Mood <span class="text-danger">*</span>
+              </label>
+              <div class="rating-group">
+                {% for val, label in form.mood.field.choices %}
+                <input type="radio" name="mood" id="mood_{{ val }}"
+                       value="{{ val }}" class="rating-radio mood-radio"
+                       {% if form.mood.value == val|stringformat:"s" %}checked{% endif %}>
+                <label class="rating-label" for="mood_{{ val }}">{{ label }}</label>
+                {% endfor %}
+              </div>
+              {% if form.mood.errors %}
+              <div class="text-danger small mt-1">{{ form.mood.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Stress -->
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold mb-2">
+                Stress Level <span class="text-danger">*</span>
+              </label>
+              <div class="rating-group">
+                {% for val, label in form.stress_level.field.choices %}
+                <input type="radio" name="stress_level" id="stress_{{ val }}"
+                       value="{{ val }}" class="rating-radio stress-radio"
+                       {% if form.stress_level.value == val|stringformat:"s" %}checked{% endif %}>
+                <label class="rating-label" for="stress_{{ val }}">{{ label }}</label>
+                {% endfor %}
+              </div>
+              {% if form.stress_level.errors %}
+              <div class="text-danger small mt-1">{{ form.stress_level.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Appetite -->
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold" for="{{ form.appetite.id_for_label }}">
+                Appetite
+              </label>
+              {{ form.appetite }}
+            </div>
+
+            <!-- Notes -->
+            <div class="col-12">
+              <label class="form-label small fw-semibold" for="{{ form.notes.id_for_label }}">
+                How are you feeling today? <span class="text-muted fw-normal">(optional)</span>
+              </label>
+              {{ form.notes }}
+              <div class="form-text">A few words about your day — completely optional.</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SLEEP & ACTIVITY ═══════════════════════════════════════ -->
+      <div class="card mb-4">
+        <div class="card-body p-4">
+          <div class="section-header">
+            <i class="bi bi-moon-stars-fill"></i> Sleep & Activity
+          </div>
+
+          <div class="row g-4">
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold" for="{{ form.sleep_hours.id_for_label }}">
+                Sleep last night <span class="text-danger">*</span>
+              </label>
+              {{ form.sleep_hours }}
+              {% if form.sleep_hours.errors %}
+              <div class="text-danger small mt-1">{{ form.sleep_hours.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold" for="{{ form.physical_activity.id_for_label }}">
+                Physical activity today <span class="text-danger">*</span>
+              </label>
+              {{ form.physical_activity }}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold" for="{{ form.water_glasses.id_for_label }}">
+                <i class="bi bi-droplet-fill me-1 text-info"></i>Glasses of water
+              </label>
+              {{ form.water_glasses }}
+              <div class="form-text">1 glass ≈ 250ml</div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold" for="{{ form.meals_today.id_for_label }}">
+                <i class="bi bi-cup-hot-fill me-1 text-warning"></i>Meals eaten today
+              </label>
+              {{ form.meals_today }}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SYMPTOMS ═══════════════════════════════════════════════ -->
+      <div class="card mb-4">
+        <div class="card-body p-4">
+          <div class="section-header">
+            <i class="bi bi-thermometer-half"></i> Any symptoms today?
+            <span class="text-muted fw-normal small ms-1">Select all that apply</span>
+          </div>
+
+          <div class="row g-2 mb-4">
+
+            <div class="col-6 col-md-4">
+              {{ form.has_headache }}
+              <label for="{{ form.has_headache.id_for_label }}">
+                <i class="bi bi-emoji-dizzy sym-icon"></i> {{ form.has_headache.label }}
+              </label>
+            </div>
+
+            <div class="col-6 col-md-4">
+              {{ form.has_fever }}
+              <label for="{{ form.has_fever.id_for_label }}">
+                <i class="bi bi-thermometer-high sym-icon"></i> {{ form.has_fever.label }}
+              </label>
+            </div>
+
+            <div class="col-6 col-md-4">
+              {{ form.has_fatigue }}
+              <label for="{{ form.has_fatigue.id_for_label }}">
+                <i class="bi bi-battery-half sym-icon"></i> {{ form.has_fatigue.label }}
+              </label>
+            </div>
+
+            <div class="col-6 col-md-4">
+              {{ form.has_nausea }}
+              <label for="{{ form.has_nausea.id_for_label }}">
+                <i class="bi bi-emoji-frown sym-icon"></i> {{ form.has_nausea.label }}
+              </label>
+            </div>
+
+            <div class="col-6 col-md-4">
+              {{ form.has_anxiety }}
+              <label for="{{ form.has_anxiety.id_for_label }}">
+                <i class="bi bi-lightning-charge sym-icon"></i> {{ form.has_anxiety.label }}
+              </label>
+            </div>
+
+            <div class="col-6 col-md-4">
+              {{ form.has_pain }}
+              <label for="{{ form.has_pain.id_for_label }}">
+                <i class="bi bi-bandaid sym-icon"></i> {{ form.has_pain.label }}
+              </label>
+            </div>
+
+          </div>
+
+          <div>
+            <label class="form-label small fw-semibold" for="{{ form.other_symptoms.id_for_label }}">
+              Other symptoms not listed above
+            </label>
+            {{ form.other_symptoms }}
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══ SUBMIT ═════════════════════════════════════════════════ -->
+      <div class="card">
+        <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+          <p class="text-muted small mb-0">
+            <i class="bi bi-shield-check me-1 text-success"></i>
+            Your wellness data is private and secure.
+          </p>
+          <div class="d-flex gap-2">
+            <a href="{% url 'wellness_home' %}" class="btn btn-outline-secondary px-4">
+              Cancel
+            </a>
+            <button type="submit" form="wellness-log-form" class="btn btn-success px-5 fw-semibold">
+              <i class="bi bi-check-lg me-2"></i>{{ action }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Style the symptom checkboxes as toggle buttons
+  document.querySelectorAll('.card input[type="checkbox"]').forEach(function(cb) {
+    cb.classList.add('symptom-toggle');
+  });
+</script>
+{% endblock %}
