@@ -1,0 +1,1 @@
+web: gunicorn campus_health.wsgi --log-file -
