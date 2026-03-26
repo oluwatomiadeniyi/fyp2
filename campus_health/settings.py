@@ -110,3 +110,7 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = 'Campus Health <noreply@campushealth.edu>'
 
 SESSION_COOKIE_AGE = 86400
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://campus-health.up.railway.app",
+]
