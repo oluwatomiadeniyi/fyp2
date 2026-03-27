@@ -75,7 +75,8 @@ def create_staff(request):
         # Capture plain password before hashing so we can email it
         plain_password = form.cleaned_data.get('password1', '')
         staff = form.save(is_active=True)
-        notify.send_staff_account_created(staff, plain_password)
+        from notifications.email import notify_staff_account_created
+        notify_staff_account_created(staff, plain_password)
         messages.success(request,
             f'Staff account created for {staff.get_full_name()}. '
             f'Login credentials have been emailed to {staff.email}.')
@@ -92,26 +93,114 @@ def dashboard(request):
     context = {'user': user}
 
     if user.is_student:
-        # Warn if profile is incomplete
+        import datetime
+        from appointments.models import Appointment
+        from health_records.models import HealthRecord
+        from wellness.models import WellnessLog
+
+        today = datetime.date.today()
+
+        # Upcoming confirmed/pending appointments
+        upcoming = Appointment.objects.filter(
+            student=user,
+            status__in=['pending', 'confirmed'],
+            date__gte=today
+        ).order_by('date', 'time').select_related('staff')[:5]
+
+        # Recent health records
+        recent_records = HealthRecord.objects.filter(
+            student=user,
+            is_confidential=False
+        ).order_by('-visit_date')[:3]
+
+        # Recent wellness logs
+        recent_wellness = WellnessLog.objects.filter(
+            user=user
+        ).order_by('-date')[:5]
+
+        # Profile completeness percentage
+        fields = [
+            user.first_name, user.last_name, user.phone,
+            user.date_of_birth, user.gender, user.matric_number,
+            user.department, user.faculty, user.level,
+            user.blood_group, user.genotype,
+            user.emergency_contacts.exists(),
+        ]
+        filled = sum(1 for f in fields if f)
+        profile_pct = int((filled / len(fields)) * 100)
+
+        # Today's wellness log
+        today_wellness = WellnessLog.objects.filter(user=user, date=today).first()
+
+        # Total counts for stat cards
+        total_appointments = Appointment.objects.filter(student=user).count()
+        total_records      = HealthRecord.objects.filter(student=user, is_confidential=False).count()
+        total_wellness     = WellnessLog.objects.filter(user=user).count()
+
+        context.update({
+            'upcoming_appointments': upcoming,
+            'recent_records':        recent_records,
+            'recent_wellness':       recent_wellness,
+            'today_wellness':        today_wellness,
+            'profile_pct':           profile_pct,
+            'total_appointments':    total_appointments,
+            'total_records':         total_records,
+            'total_wellness':        total_wellness,
+        })
+
         if not user.profile_complete():
             messages.warning(request,
                 'Your profile is incomplete. Please fill in your medical information.')
 
-        # Placeholder querysets — will be real once those apps are built
-        context['upcoming_appointments'] = []
-        context['recent_wellness']       = []
-
     elif user.is_medical_staff:
-        context['today_appointments'] = []
-        context['pending_count']      = 0
+        import datetime
+        from appointments.models import Appointment
+
+        today = datetime.date.today()
+
+        today_appts = Appointment.objects.filter(
+            staff=user,
+            date=today,
+            status__in=['pending', 'confirmed']
+        ).order_by('time').select_related('student')
+
+        pending_count = Appointment.objects.filter(
+            staff=user,
+            status='pending'
+        ).count()
+
+        completed_today = Appointment.objects.filter(
+            staff=user,
+            date=today,
+            status='completed'
+        ).count()
+
+        my_patients_count = Appointment.objects.filter(
+            staff=user,
+            status__in=['confirmed', 'completed']
+        ).values('student').distinct().count()
+
+        context.update({
+            'today_appointments': today_appts,
+            'pending_count':      pending_count,
+            'completed_today':    completed_today,
+            'my_patients_count':  my_patients_count,
+        })
 
     elif user.is_admin_user:
         from appointments.models import Appointment
+        from wellness.intelligence import get_at_risk_status
         context['total_students']    = User.objects.filter(role='student').count()
         context['total_staff']       = User.objects.filter(role='staff', is_active=True).count()
         context['pending_staff']     = User.objects.filter(role='staff', is_active=False).count()
         context['total_appointments'] = Appointment.objects.count()
         context['appts_pending']     = Appointment.objects.filter(status='pending').count()
+        # Smart: count at-risk students
+        all_students = User.objects.filter(role='student', is_active=True)
+        at_risk_count = sum(
+            1 for s in all_students if get_at_risk_status(s)['is_at_risk']
+        )
+        context['at_risk_count'] = at_risk_count
 
     return render(request, 'accounts/dashboard.html', context)
 
@@ -263,10 +352,18 @@ def student_directory(request):
     departments = User.objects.filter(role='student').values_list(
         'department', flat=True).distinct().order_by('department')
 
+    # Attach at-risk status to each student for staff/admin view
+    from wellness.intelligence import get_at_risk_status
+    students_with_risk = [
+        {'student': s, 'risk': get_at_risk_status(s)}
+        for s in students
+    ]
+
     return render(request, 'accounts/student_directory.html', {
-        'students': students,
-        'departments': departments,
-        'q': q,
+        'students':           students,
+        'students_with_risk': students_with_risk,
+        'departments':        departments,
+        'q':    q,
         'dept': dept,
     })
 
@@ -279,7 +376,12 @@ def student_detail(request, pk):
         return redirect('dashboard')
 
     student = get_object_or_404(User, pk=pk, role='student')
-    return render(request, 'accounts/student_detail.html', {'student': student})
+    from wellness.intelligence import get_at_risk_status
+    at_risk = get_at_risk_status(student)
+    return render(request, 'accounts/student_detail.html', {
+        'student': student,
+        'at_risk': at_risk,
+    })
 
 
 @login_required

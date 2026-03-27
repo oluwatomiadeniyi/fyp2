@@ -5,80 +5,239 @@
 {% block content %}
 
 {% if user.is_student %}
-<!-- ── Student Dashboard ─────────────────────────────────────── -->
+<!-- ══ STUDENT DASHBOARD ══════════════════════════════════════════════ -->
 
+<!-- Profile incomplete banner -->
 {% if not user.profile_complete %}
 <div class="alert alert-warning d-flex align-items-center gap-3 mb-4">
   <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
-  <div>
+  <div class="flex-grow-1">
     <strong>Complete your profile</strong> — your medical information is not fully filled in.
-    This helps medical staff provide better care.
+    This helps medical staff provide better care in an emergency.
     <a href="{% url 'profile_medical' %}" class="alert-link ms-2">Complete now &rarr;</a>
   </div>
 </div>
 {% endif %}
 
-<div class="row g-4 mb-4">
-  <div class="col-sm-6 col-xl-3">
-    <div class="stat-card" style="background:#0f6e56;">
-      <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
-      <div class="stat-number">{{ upcoming_appointments|length|default:"0" }}</div>
-      <div class="stat-label">Upcoming Appointments</div>
-    </div>
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+
+  <div class="col-6 col-xl-3">
+    <a href="{% url 'appointment_list' %}" class="text-decoration-none">
+      <div class="stat-card" style="background:#0f6e56;">
+        <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+        <div class="stat-number">{{ upcoming_appointments|length }}</div>
+        <div class="stat-label">Upcoming Appointments</div>
+      </div>
+    </a>
   </div>
-  <div class="col-sm-6 col-xl-3">
-    <div class="stat-card" style="background:#185fa5;">
-      <div class="stat-icon"><i class="bi bi-journal-medical"></i></div>
-      <div class="stat-number">0</div>
-      <div class="stat-label">Health Records</div>
-    </div>
+
+  <div class="col-6 col-xl-3">
+    <a href="{% url 'record_list' %}" class="text-decoration-none">
+      <div class="stat-card" style="background:#185fa5;">
+        <div class="stat-icon"><i class="bi bi-journal-medical"></i></div>
+        <div class="stat-number">{{ total_records }}</div>
+        <div class="stat-label">Health Records</div>
+      </div>
+    </a>
   </div>
-  <div class="col-sm-6 col-xl-3">
-    <div class="stat-card" style="background:#7f4f24;">
-      <div class="stat-icon"><i class="bi bi-emoji-smile"></i></div>
-      <div class="stat-number">{{ recent_wellness|length|default:"0" }}</div>
-      <div class="stat-label">Wellness Logs</div>
-    </div>
+
+  <div class="col-6 col-xl-3">
+    <a href="{% url 'wellness_home' %}" class="text-decoration-none">
+      <div class="stat-card" style="background:#7f4f24;">
+        <div class="stat-icon"><i class="bi bi-emoji-smile"></i></div>
+        <div class="stat-number">{{ total_wellness }}</div>
+        <div class="stat-label">Wellness Logs</div>
+      </div>
+    </a>
   </div>
-  <div class="col-sm-6 col-xl-3">
-    <div class="stat-card" style="background:{% if user.profile_complete %}#0f6e56{% else %}#ba7517{% endif %};">
-      <div class="stat-icon"><i class="bi bi-person-check"></i></div>
-      <div class="stat-number">{% if user.profile_complete %}100{% else %}~60{% endif %}%</div>
-      <div class="stat-label">Profile Completeness</div>
-    </div>
+
+  <div class="col-6 col-xl-3">
+    <a href="{% url 'profile_medical' %}" class="text-decoration-none">
+      <div class="stat-card"
+           style="background:{% if profile_pct == 100 %}#0f6e56{% elif profile_pct >= 70 %}#185fa5{% else %}#ba7517{% endif %};">
+        <div class="stat-icon"><i class="bi bi-person-check"></i></div>
+        <div class="stat-number">{{ profile_pct }}%</div>
+        <div class="stat-label">Profile Complete</div>
+      </div>
+    </a>
   </div>
+
 </div>
 
+<!-- Today wellness banner -->
+{% if today_wellness %}
+<div class="alert d-flex align-items-center gap-3 mb-4"
+     style="background:#e1f5ee;border:1px solid #9fe1cb;color:#085041;">
+  <i class="bi bi-check-circle-fill fs-5"></i>
+  <div class="flex-grow-1 small">
+    <strong>Today's check-in complete</strong> &nbsp;·&nbsp;
+    Mood: <strong>{{ today_wellness.get_mood_display }}</strong> &nbsp;·&nbsp;
+    Stress: <strong>{{ today_wellness.get_stress_level_display }}</strong> &nbsp;·&nbsp;
+    Score: <strong>{{ today_wellness.wellness_score }}/100</strong>
+  </div>
+  <a href="{% url 'edit_wellness_log' today_wellness.pk %}"
+     class="btn btn-sm" style="background:#0f6e56;color:#fff;">Edit</a>
+</div>
+{% else %}
+<div class="alert d-flex align-items-center gap-3 mb-4"
+     style="background:#faeeda;border:1px solid #fac775;color:#633806;">
+  <i class="bi bi-sun fs-5"></i>
+  <div class="flex-grow-1 small">
+    <strong>You haven't logged today yet.</strong>
+    Take 60 seconds to check in with yourself.
+  </div>
+  <a href="{% url 'log_wellness' %}" class="btn btn-sm btn-warning fw-semibold">
+    <i class="bi bi-plus-lg me-1"></i>Log Now
+  </a>
+</div>
+{% endif %}
+
+<!-- Main grid -->
 <div class="row g-4">
-  <!-- Profile summary card -->
+
+  <!-- Upcoming appointments -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-calendar-check me-2"></i>Upcoming Appointments</span>
+        <a href="{% url 'book_appointment' %}" class="btn btn-sm btn-success">
+          <i class="bi bi-plus-lg me-1"></i>Book New
+        </a>
+      </div>
+      {% if upcoming_appointments %}
+      <div class="list-group list-group-flush">
+        {% for appt in upcoming_appointments %}
+        <a href="{% url 'appointment_detail' appt.pk %}"
+           class="list-group-item list-group-item-action py-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-semibold small">{{ appt.get_appointment_type_display }}</div>
+              <div class="text-muted" style="font-size:.78rem;">
+                <i class="bi bi-calendar3 me-1"></i>{{ appt.date|date:"l, d M Y" }}
+                &nbsp;·&nbsp;
+                <i class="bi bi-clock me-1"></i>{{ appt.time|time:"H:i" }}
+              </div>
+              {% if appt.staff %}
+              <div class="text-muted" style="font-size:.75rem;">
+                <i class="bi bi-person-badge me-1"></i>{{ appt.staff.get_full_name }}
+              </div>
+              {% endif %}
+            </div>
+            <span class="badge rounded-pill
+              {% if appt.status == 'confirmed' %}bg-success
+              {% else %}bg-warning text-dark{% endif %}">
+              {{ appt.get_status_display }}
+            </span>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      <div class="card-footer text-center py-2">
+        <a href="{% url 'appointment_list' %}" class="small text-muted">
+          View all appointments &rarr;
+        </a>
+      </div>
+      {% else %}
+      <div class="card-body text-center py-4 text-muted">
+        <i class="bi bi-calendar-x display-4 d-block mb-2 opacity-25"></i>
+        <p class="small mb-3">No upcoming appointments.</p>
+        <a href="{% url 'book_appointment' %}" class="btn btn-sm btn-success">
+          Book Your First Appointment
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Recent health records -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-journal-medical me-2"></i>Recent Health Records</span>
+        <a href="{% url 'record_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      {% if recent_records %}
+      <div class="list-group list-group-flush">
+        {% for rec in recent_records %}
+        <a href="{% url 'record_detail' rec.pk %}"
+           class="list-group-item list-group-item-action py-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-semibold small">{{ rec.get_visit_type_display }}</div>
+              <div class="text-muted" style="font-size:.78rem;">
+                {{ rec.visit_date|date:"d M Y" }}
+                {% if rec.attending_staff %}
+                  &nbsp;·&nbsp; {{ rec.attending_staff.get_full_name }}
+                {% endif %}
+              </div>
+              {% if rec.diagnosis %}
+              <div class="text-muted mt-1" style="font-size:.75rem;">
+                {{ rec.diagnosis|truncatechars:60 }}
+              </div>
+              {% endif %}
+            </div>
+            <i class="bi bi-chevron-right text-muted small"></i>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      <div class="card-footer text-center py-2">
+        <a href="{% url 'record_list' %}" class="small text-muted">
+          View all records &rarr;
+        </a>
+      </div>
+      {% else %}
+      <div class="card-body text-center py-4 text-muted">
+        <i class="bi bi-journal display-4 d-block mb-2 opacity-25"></i>
+        <p class="small mb-0">No health records yet.</p>
+        <p class="small">Records appear here after a consultation.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Medical summary -->
   <div class="col-lg-4">
     <div class="card h-100">
       <div class="card-header">
-        <i class="bi bi-person-vcard me-2"></i>Your Medical Summary
+        <i class="bi bi-person-vcard me-2"></i>Medical Summary
       </div>
       <div class="card-body">
         <dl class="row small mb-0">
           <dt class="col-5 text-muted">Blood Group</dt>
           <dd class="col-7 fw-semibold">
             {% if user.blood_group and user.blood_group != 'unknown' %}
-              <span class="badge" style="background:#fcebeb;color:#a32d2d;">{{ user.blood_group }}</span>
+              <span class="badge" style="background:#fcebeb;color:#a32d2d;">
+                {{ user.blood_group }}
+              </span>
             {% else %}<span class="text-muted">Not set</span>{% endif %}
           </dd>
+
           <dt class="col-5 text-muted">Genotype</dt>
           <dd class="col-7">{{ user.genotype|default:"Not set" }}</dd>
+
           <dt class="col-5 text-muted">BMI</dt>
           <dd class="col-7">
-            {% if user.get_bmi %}{{ user.get_bmi }} — {{ user.bmi_category }}
+            {% if user.get_bmi %}
+              {{ user.get_bmi }} — {{ user.bmi_category }}
             {% else %}Not calculated{% endif %}
           </dd>
+
           <dt class="col-5 text-muted">Allergies</dt>
-          <dd class="col-7">{{ user.allergies|default:"Not set"|truncatechars:40 }}</dd>
+          <dd class="col-7">{{ user.allergies|default:"Not set"|truncatechars:35 }}</dd>
+
           <dt class="col-5 text-muted">Conditions</dt>
-          <dd class="col-7">{{ user.chronic_conditions|default:"Not set"|truncatechars:40 }}</dd>
-          <dt class="col-5 text-muted">NHIS</dt>
-          <dd class="col-7">{% if user.has_nhis %}Yes — {{ user.nhis_number }}{% else %}No{% endif %}</dd>
+          <dd class="col-7">{{ user.chronic_conditions|default:"None"|truncatechars:35 }}</dd>
+
+          <dt class="col-5 text-muted">Insurance</dt>
+          <dd class="col-7">
+            {% if user.has_nhis %}NHIS — {{ user.nhis_number }}
+            {% else %}Not registered{% endif %}
+          </dd>
         </dl>
-        <a href="{% url 'profile_medical' %}" class="btn btn-sm btn-outline-success mt-3 w-100">
+        <a href="{% url 'profile_medical' %}"
+           class="btn btn-sm btn-outline-success mt-3 w-100">
           <i class="bi bi-pencil me-1"></i>Update Medical Info
         </a>
       </div>
@@ -88,134 +247,313 @@
   <!-- Quick actions -->
   <div class="col-lg-4">
     <div class="card h-100">
-      <div class="card-header"><i class="bi bi-lightning me-2"></i>Quick Actions</div>
+      <div class="card-header">
+        <i class="bi bi-lightning me-2"></i>Quick Actions
+      </div>
       <div class="card-body d-flex flex-column gap-2">
-        <a href="#" class="btn btn-outline-success text-start d-flex align-items-center gap-2">
+        <a href="{% url 'book_appointment' %}"
+           class="btn btn-outline-success text-start d-flex align-items-center gap-2">
           <i class="bi bi-calendar-plus"></i>Book an Appointment
         </a>
-        <a href="{% url 'profile_medical' %}" class="btn btn-outline-primary text-start d-flex align-items-center gap-2">
-          <i class="bi bi-heart-pulse"></i>Update Medical Profile
+        <a href="{% url 'log_wellness' %}"
+           class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-emoji-smile"></i>
+          {% if today_wellness %}Edit Today's Wellness Log
+          {% else %}Log Today's Wellness{% endif %}
         </a>
-        <a href="#" class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
+        <a href="{% url 'record_list' %}"
+           class="btn btn-outline-primary text-start d-flex align-items-center gap-2">
           <i class="bi bi-clipboard2-pulse"></i>View Health Records
         </a>
-        <a href="#" class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
-          <i class="bi bi-emoji-smile"></i>Log Wellness Entry
+        <a href="{% url 'mental_health' %}"
+           class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-brain"></i>Mental Health Check (PHQ-9)
         </a>
-        <a href="{% url 'profile_emergency' %}" class="btn btn-outline-danger text-start d-flex align-items-center gap-2">
+        <a href="{% url 'profile_medical' %}"
+           class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-heart-pulse"></i>Update Medical Profile
+        </a>
+        <a href="{% url 'profile_emergency' %}"
+           class="btn btn-outline-danger text-start d-flex align-items-center gap-2">
           <i class="bi bi-telephone-fill"></i>Emergency Contacts
         </a>
       </div>
     </div>
   </div>
 
-  <!-- Student info card -->
+  <!-- Academic info -->
   <div class="col-lg-4">
     <div class="card h-100">
-      <div class="card-header"><i class="bi bi-mortarboard me-2"></i>Academic Info</div>
+      <div class="card-header">
+        <i class="bi bi-mortarboard me-2"></i>Academic Info
+      </div>
       <div class="card-body">
         <dl class="row small mb-0">
           <dt class="col-5 text-muted">Matric No.</dt>
           <dd class="col-7 fw-semibold">{{ user.matric_number|default:"Not set" }}</dd>
+
           <dt class="col-5 text-muted">Department</dt>
           <dd class="col-7">{{ user.department|default:"Not set" }}</dd>
+
           <dt class="col-5 text-muted">Faculty</dt>
           <dd class="col-7">{{ user.faculty|default:"Not set" }}</dd>
+
           <dt class="col-5 text-muted">Level</dt>
           <dd class="col-7">{{ user.level|default:"Not set" }}</dd>
+
           <dt class="col-5 text-muted">Hall</dt>
-          <dd class="col-7">{{ user.hall_of_residence|default:"Off-campus / Not set" }}</dd>
+          <dd class="col-7">{{ user.hall_of_residence|default:"Off-campus" }}</dd>
+
           <dt class="col-5 text-muted">State</dt>
           <dd class="col-7">{{ user.state_of_origin|default:"Not set" }}</dd>
         </dl>
+        <a href="{% url 'profile_academic' %}"
+           class="btn btn-sm btn-outline-primary mt-3 w-100">
+          <i class="bi bi-pencil me-1"></i>Update Academic Info
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+{% elif user.is_medical_staff %}
+<!-- ══ STAFF DASHBOARD ════════════════════════════════════════════════ -->
+
+<div class="row g-3 mb-4">
+
+  <div class="col-6 col-xl-3">
+    <a href="{% url 'today_appointments' %}" class="text-decoration-none">
+      <div class="stat-card" style="background:#0f6e56;">
+        <div class="stat-icon"><i class="bi bi-calendar-day"></i></div>
+        <div class="stat-number">{{ today_appointments|length }}</div>
+        <div class="stat-label">Today's Appointments</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <a href="{% url 'appointment_list' %}" class="text-decoration-none">
+      <div class="stat-card" style="background:#ba7517;">
+        <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div class="stat-number">{{ pending_count }}</div>
+        <div class="stat-label">Pending Requests</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <a href="{% url 'my_patients' %}" class="text-decoration-none">
+      <div class="stat-card" style="background:#185fa5;">
+        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="stat-number">{{ my_patients_count }}</div>
+        <div class="stat-label">My Patients</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <div class="stat-card" style="background:#6f42c1;">
+      <div class="stat-icon"><i class="bi bi-check2-circle"></i></div>
+      <div class="stat-number">{{ completed_today }}</div>
+      <div class="stat-label">Completed Today</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="row g-4">
+  <!-- Today's schedule -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-calendar2-week me-2"></i>Today's Schedule</span>
+        <a href="{% url 'today_appointments' %}" class="btn btn-sm btn-outline-success">
+          Full Schedule
+        </a>
+      </div>
+      {% if today_appointments %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+          <thead class="table-light">
+            <tr>
+              <th>Time</th>
+              <th>Student</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for appt in today_appointments %}
+            <tr>
+              <td class="fw-semibold">{{ appt.time|time:"H:i" }}</td>
+              <td>
+                <div class="fw-semibold">{{ appt.student.get_full_name }}</div>
+                <div class="text-muted" style="font-size:.72rem;">
+                  {{ appt.student.matric_number|default:"—" }}
+                </div>
+              </td>
+              <td>{{ appt.get_appointment_type_display }}</td>
+              <td>
+                <span class="badge rounded-pill
+                  {% if appt.status == 'confirmed' %}bg-success
+                  {% elif appt.status == 'pending' %}bg-warning text-dark
+                  {% else %}bg-secondary{% endif %}">
+                  {{ appt.get_status_display }}
+                </span>
+              </td>
+              <td>
+                <a href="{% url 'appointment_detail' appt.pk %}"
+                   class="btn btn-sm btn-outline-primary">View</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="card-body text-center py-5 text-muted">
+        <i class="bi bi-calendar-check display-4 d-block mb-2 opacity-25"></i>
+        No appointments scheduled for today.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-lightning me-2"></i>Quick Actions
+      </div>
+      <div class="card-body d-flex flex-column gap-2">
+        <a href="{% url 'today_appointments' %}"
+           class="btn btn-outline-success text-start d-flex align-items-center gap-2">
+          <i class="bi bi-calendar-day"></i>Today's Schedule
+        </a>
+        <a href="{% url 'appointment_list' %}"
+           class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-calendar2-week"></i>All Appointments
+        </a>
+        <a href="{% url 'create_record' %}"
+           class="btn btn-outline-primary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-file-earmark-plus"></i>New Health Record
+        </a>
+        <a href="{% url 'my_patients' %}"
+           class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-person-heart"></i>My Patients
+        </a>
+        <a href="{% url 'student_directory' %}"
+           class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-people"></i>Student Directory
+        </a>
+        <a href="{% url 'manage_schedule' %}"
+           class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-calendar-week"></i>My Availability
+        </a>
       </div>
     </div>
   </div>
 </div>
 
 
-{% elif user.is_medical_staff %}
-<!-- ── Staff Dashboard ───────────────────────────────────────── -->
-<div class="row g-4 mb-4">
-  <div class="col-sm-6 col-xl-3">
-    <div class="stat-card" style="background:#0f6e56;">
-      <div class="stat-icon"><i class="bi bi-calendar-day"></i></div>
-      <div class="stat-number">{{ today_appointments|length|default:"0" }}</div>
-      <div class="stat-label">Today's Appointments</div>
-    </div>
-  </div>
-  <div class="col-sm-6 col-xl-3">
-    <div class="stat-card" style="background:#ba7517;">
-      <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
-      <div class="stat-number">{{ pending_count|default:"0" }}</div>
-      <div class="stat-label">Pending Requests</div>
-    </div>
-  </div>
-</div>
+{% elif user.is_admin_user %}
+<!-- ══ ADMIN DASHBOARD ════════════════════════════════════════════════ -->
 
-<div class="card">
-  <div class="card-header d-flex justify-content-between">
-    <span><i class="bi bi-calendar2-week me-2"></i>Today's Schedule</span>
-    <a href="{% url 'student_directory' %}" class="btn btn-sm btn-outline-success">
-      <i class="bi bi-people me-1"></i>Student Directory
+<div class="row g-3 mb-4">
+
+  <div class="col-6 col-xl-3">
+    <a href="{% url 'student_directory' %}" class="text-decoration-none">
+      <div class="stat-card" style="background:#0f6e56;">
+        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="stat-number">{{ total_students }}</div>
+        <div class="stat-label">Registered Students</div>
+      </div>
     </a>
   </div>
-  <div class="card-body text-center py-5 text-muted">
-    <i class="bi bi-calendar-check display-4 d-block mb-2 opacity-25"></i>
-    Appointments module coming soon.
+
+  <div class="col-6 col-xl-3">
+    <a href="{% url 'pending_staff' %}" class="text-decoration-none">
+      <div class="stat-card" style="background:#185fa5;">
+        <div class="stat-icon"><i class="bi bi-person-badge"></i></div>
+        <div class="stat-number">{{ total_staff }}</div>
+        <div class="stat-label">Active Medical Staff</div>
+      </div>
+    </a>
   </div>
+
+  <div class="col-6 col-xl-3">
+    <a href="{% url 'unassigned_appointments' %}" class="text-decoration-none">
+      <div class="stat-card" style="background:#ba7517;">
+        <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div class="stat-number">{{ appts_pending }}</div>
+        <div class="stat-label">Pending Assignments</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <a href="{% url 'appointment_list' %}" class="text-decoration-none">
+      <div class="stat-card" style="background:#6f42c1;">
+        <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+        <div class="stat-number">{{ total_appointments }}</div>
+        <div class="stat-label">Total Appointments</div>
+      </div>
+    </a>
+  </div>
+
 </div>
 
-
-{% elif user.is_admin_user %}
-<!-- ── Admin Dashboard ───────────────────────────────────────── -->
-<div class="row g-4 mb-4">
-  <div class="col-sm-6 col-xl-3">
-    <div class="stat-card" style="background:#0f6e56;">
-      <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
-      <div class="stat-number">{{ total_students }}</div>
-      <div class="stat-label">Registered Students</div>
+<!-- Smart: At-risk alert -->
+{% if at_risk_count %}
+<div class="alert d-flex align-items-center gap-3 mb-4"
+     style="background:#fcebeb;border:1px solid #f09595;color:#a32d2d;">
+  <i class="bi bi-exclamation-triangle-fill fs-4 flex-shrink-0"></i>
+  <div class="flex-grow-1">
+    <strong>Smart Alert — {{ at_risk_count }}
+      student{{ at_risk_count|pluralize }} flagged as at-risk</strong>
+    <div class="small mt-1">
+      The system has automatically detected concerning wellness patterns.
+      These students may need immediate attention.
     </div>
   </div>
-  <div class="col-sm-6 col-xl-3">
-    <div class="stat-card" style="background:#185fa5;">
-      <div class="stat-icon"><i class="bi bi-person-badge"></i></div>
-      <div class="stat-number">{{ total_staff }}</div>
-      <div class="stat-label">Active Medical Staff</div>
-    </div>
-  </div>
-  <div class="col-sm-6 col-xl-3">
-    <div class="stat-card" style="background:#ba7517;">
-      <div class="stat-icon"><i class="bi bi-person-exclamation"></i></div>
-      <div class="stat-number">{{ pending_staff }}</div>
-      <div class="stat-label">Pending Staff Approvals</div>
-    </div>
-  </div>
-  <div class="col-sm-6 col-xl-3">
-    <div class="stat-card" style="background:#6f42c1;">
-      <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
-      <div class="stat-number">{{ total_appointments }}</div>
-      <div class="stat-label">Total Appointments</div>
-    </div>
-  </div>
+  <a href="{% url 'student_directory' %}"
+     class="btn btn-danger btn-sm fw-semibold flex-shrink-0">
+    View Students
+  </a>
 </div>
+{% endif %}
 
 <div class="row g-4">
   <div class="col-md-6">
     <div class="card">
-      <div class="card-header"><i class="bi bi-lightning me-2"></i>Admin Quick Actions</div>
+      <div class="card-header">
+        <i class="bi bi-lightning me-2"></i>Admin Quick Actions
+      </div>
       <div class="card-body d-flex flex-column gap-2">
-        <a href="{% url 'unassigned_appointments' %}" class="btn btn-outline-danger text-start d-flex align-items-center gap-2">
+        <a href="{% url 'unassigned_appointments' %}"
+           class="btn btn-outline-danger text-start d-flex align-items-center gap-2">
           <i class="bi bi-person-fill-check"></i>Assign Doctors to Appointments
-          {% if appts_pending %}<span class="badge bg-danger ms-auto">{{ appts_pending }}</span>{% endif %}
+          {% if appts_pending %}
+          <span class="badge bg-danger ms-auto">{{ appts_pending }}</span>
+          {% endif %}
         </a>
-        <a href="{% url 'student_directory' %}" class="btn btn-outline-success text-start d-flex align-items-center gap-2">
+        <a href="{% url 'analytics_dashboard' %}"
+           class="btn btn-outline-success text-start d-flex align-items-center gap-2">
+          <i class="bi bi-bar-chart-line"></i>View Analytics Dashboard
+        </a>
+        <a href="{% url 'student_directory' %}"
+           class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
           <i class="bi bi-people"></i>View All Students
         </a>
-        <a href="{% url 'pending_staff' %}" class="btn btn-outline-warning text-start d-flex align-items-center gap-2">
+        <a href="{% url 'pending_staff' %}"
+           class="btn btn-outline-warning text-start d-flex align-items-center gap-2">
           <i class="bi bi-person-check"></i>Manage Medical Staff
         </a>
-        <a href="{% url 'create_staff' %}" class="btn btn-outline-primary text-start d-flex align-items-center gap-2">
+        <a href="{% url 'create_staff' %}"
+           class="btn btn-outline-primary text-start d-flex align-items-center gap-2">
           <i class="bi bi-person-plus"></i>Create Staff Account
         </a>
       </div>
