@@ -59,6 +59,27 @@ class AppointmentBookingForm(forms.ModelForm):
             raise forms.ValidationError('Please choose a time between 08:00 and 17:00.')
         return t
 
+    def clean(self):
+        cleaned = super().clean()
+        date    = cleaned.get('date')
+        time    = cleaned.get('time')
+        student = getattr(self, 'student', None)
+        if student and date and time:
+            clash = Appointment.objects.filter(
+                student=student,
+                date=date,
+                time=time,
+                status__in=['pending', 'confirmed']
+            ).exists()
+            if clash:
+                raise forms.ValidationError(
+                    'You already have a pending or confirmed appointment on '
+                    + date.strftime('%A, %d %B %Y')
+                    + ' at ' + time.strftime('%H:%M')
+                    + '. Please choose a different date or time.'
+                )
+        return cleaned
+
 
 class AppointmentStatusForm(forms.ModelForm):
     """Staff use this to update status, add notes, diagnosis, prescription."""

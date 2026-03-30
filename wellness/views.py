@@ -7,6 +7,7 @@ from django.db.models import Avg, Count
 
 from .models import WellnessLog, MentalHealthAssessment, WellnessGoal
 from .forms import WellnessLogForm, MentalHealthForm, WellnessGoalForm
+from .intelligence import get_wellness_insights, get_appointment_recommendation, get_at_risk_status
 
 
 # ── Wellness dashboard ─────────────────────────────────────────────────────────
@@ -46,6 +47,11 @@ def wellness_home(request):
     # Latest mental health assessment
     latest_mh = MentalHealthAssessment.objects.filter(user=user).first()
 
+    # ── Smart features ────────────────────────────────────────────────
+    insights       = get_wellness_insights(user)
+    recommendation = get_appointment_recommendation(user)
+    at_risk        = get_at_risk_status(user)
+
     return render(request, 'wellness/home.html', {
         'today_log':     today_log,
         'recent_logs':   recent_logs,
@@ -56,6 +62,10 @@ def wellness_home(request):
         'mood_data':     json.dumps(mood_data),
         'stress_data':   json.dumps(stress_data),
         'score_data':    json.dumps(score_data),
+        # Smart features
+        'insights':        insights,
+        'recommendation':  recommendation,
+        'at_risk':         at_risk,
     })
 
 
@@ -229,12 +239,15 @@ def student_wellness_summary(request, student_pk):
     mood_data    = json.dumps([l.mood for l in logs])
     stress_data  = json.dumps([l.stress_level for l in logs])
 
+    at_risk = get_at_risk_status(student)
+
     return render(request, 'wellness/student_summary.html', {
-        'student': student,
-        'logs': logs,
-        'avg': avg,
-        'latest_mh': latest_mh,
+        'student':     student,
+        'logs':        logs,
+        'avg':         avg,
+        'latest_mh':   latest_mh,
         'chart_labels': chart_labels,
-        'mood_data': mood_data,
+        'mood_data':   mood_data,
         'stress_data': stress_data,
+        'at_risk':     at_risk,
     })

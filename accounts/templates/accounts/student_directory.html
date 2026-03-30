@@ -45,11 +45,13 @@
           <th>Level</th>
           <th>Hall</th>
           <th>Blood Group</th>
+          <th>Wellness</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
-        {% for student in students %}
+        {% for item in students_with_risk %}
+        {% with student=item.student risk=item.risk %}
         <tr>
           <td>
             <div class="d-flex align-items-center gap-2">
@@ -78,13 +80,33 @@
             {% else %}<span class="text-muted small">—</span>{% endif %}
           </td>
           <td>
+            {% if risk.is_at_risk %}
+              {% if risk.level == 'high' %}
+              <span class="badge bg-danger d-inline-flex align-items-center gap-1"
+                    title="{{ risk.reasons|join:', ' }}">
+                <i class="bi bi-exclamation-triangle-fill" style="font-size:.65rem;"></i>
+                At Risk
+              </span>
+              {% else %}
+              <span class="badge bg-warning text-dark d-inline-flex align-items-center gap-1"
+                    title="{{ risk.reasons|join:', ' }}">
+                <i class="bi bi-exclamation-circle-fill" style="font-size:.65rem;"></i>
+                Monitor
+              </span>
+              {% endif %}
+            {% else %}
+              <span class="text-muted small">—</span>
+            {% endif %}
+          </td>
+          <td>
             <a href="{% url 'student_detail' student.pk %}" class="btn btn-sm btn-outline-secondary">
               View
             </a>
           </td>
         </tr>
+        {% endwith %}
         {% empty %}
-        <tr><td colspan="7" class="text-center py-5 text-muted">No students found.</td></tr>
+        <tr><td colspan="8" class="text-center py-5 text-muted">No students found.</td></tr>
         {% endfor %}
       </tbody>
     </table>

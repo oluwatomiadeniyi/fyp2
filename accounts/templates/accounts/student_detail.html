@@ -9,6 +9,30 @@
   </a>
 </div>
 
+<!-- ── Smart: At-risk alert banner ───────────────────────────────── -->
+{% if at_risk.is_at_risk %}
+<div class="alert d-flex align-items-start gap-3 mb-4
+            {% if at_risk.level == 'high' %}alert-danger{% else %}alert-warning{% endif %}">
+  <i class="bi bi-{% if at_risk.level == 'high' %}exclamation-triangle-fill{% else %}exclamation-circle-fill{% endif %} fs-5 flex-shrink-0 mt-1"></i>
+  <div class="flex-grow-1">
+    <strong class="d-block mb-1">
+      {% if at_risk.level == 'high' %}High Risk — Immediate Attention Recommended
+      {% else %}Wellness Concern — Please Monitor
+      {% endif %}
+    </strong>
+    <ul class="mb-2 ps-3 small">
+      {% for reason in at_risk.reasons %}
+      <li>{{ reason }}</li>
+      {% endfor %}
+    </ul>
+    <a href="{% url 'student_wellness_summary' student.pk %}" class="btn btn-sm
+       {% if at_risk.level == 'high' %}btn-danger{% else %}btn-warning{% endif %}">
+      View Wellness Summary
+    </a>
+  </div>
+</div>
+{% endif %}
+
 <!-- Header -->
 <div class="card mb-4">
   <div class="card-body p-4">

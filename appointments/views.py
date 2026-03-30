@@ -83,6 +83,7 @@ def book_appointment(request):
         return redirect('dashboard')
 
     form = AppointmentBookingForm(request.POST or None)
+    form.student = request.user   # inject student for duplicate check
     if request.method == 'POST' and form.is_valid():
         appt         = form.save(commit=False)
         appt.student = request.user
@@ -141,10 +142,21 @@ def update_status(request, pk):
 
     form = AppointmentStatusForm(request.POST or None, instance=appt)
     if request.method == 'POST' and form.is_valid():
-        form.save()
-        _notify_status_changed(appt)
-        messages.success(request, f'Appointment updated to "{appt.get_status_display()}".')
-        return redirect('appointment_detail', pk=appt.pk)
+        old_status = appt.status
+        updated    = form.save()          # appt is updated in-place
+        new_status = updated.status
+
+        # Only notify on status transitions that matter to the student
+        if new_status != old_status:
+            if new_status == 'confirmed':
+                notify.send_appointment_confirmed(updated)
+            elif new_status == 'completed':
+                notify.send_appointment_completed(updated)
+            elif new_status == 'cancelled':
+                notify.send_appointment_cancelled(updated)
+
+        messages.success(request, f'Appointment updated to "{updated.get_status_display()}".')
+        return redirect('appointment_detail', pk=updated.pk)
 
     return render(request, 'appointments/update_status.html', {
         'form': form, 'appt': appt,
@@ -297,48 +309,7 @@ def today_appointments(request):
     return render(request, 'appointments/today.html', {'appts': appts})
 
 
-# ── Notification helpers (console-only for now) ────────────────────────────────
-
-def _notify_booked(appt):
-    from django.core.mail import send_mail
-    try:
-        send_mail(
-            subject=f'Appointment Booked — {appt.get_appointment_type_display()}',
-            message=(
-                f'Dear {appt.student.first_name},\n\n'
-                f'Your appointment has been booked for {appt.date} at {appt.time}.\n'
-                f'Reason: {appt.reason}\n\n'
-                f'It is currently pending confirmation from medical staff.\n\n'
-                f'Campus Health Team'
-            ),
-            from_email=None,
-            recipient_list=[appt.student.email],
-            fail_silently=True,
-        )
-    except Exception:
-        pass
-
-
-def _notify_status_changed(appt):
-    from django.core.mail import send_mail
-    if not appt.student.email:
-        return
-    try:
-        send_mail(
-            subject=f'Appointment {appt.get_status_display()} — Campus Health',
-            message=(
-                f'Dear {appt.student.first_name},\n\n'
-                f'Your appointment on {appt.date} at {appt.time} has been '
-                f'updated to: {appt.get_status_display().upper()}.\n\n'
-                f'{"Notes: " + appt.notes if appt.notes else ""}\n\n'
-                f'Campus Health Team'
-            ),
-            from_email=None,
-            recipient_list=[appt.student.email],
-            fail_silently=True,
-        )
-    except Exception:
-        pass
+# Notifications are sent via accounts.notifications (imported as notify at top)
 
 
 # ── Admin: assign a doctor to an appointment ──────────────────────────────────

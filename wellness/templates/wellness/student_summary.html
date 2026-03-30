@@ -9,11 +9,36 @@
 </div>
 
 <div class="card mb-4">
-  <div class="card-body">
-    <h5 class="fw-bold mb-0">{{ student.get_full_name }}</h5>
-    <p class="text-muted small mb-0">{{ student.matric_number }} &middot; {{ student.department }}</p>
+  <div class="card-body d-flex align-items-center justify-content-between gap-3 flex-wrap">
+    <div>
+      <h5 class="fw-bold mb-0">{{ student.get_full_name }}</h5>
+      <p class="text-muted small mb-0">{{ student.matric_number }} &middot; {{ student.department }}</p>
+    </div>
+    {% if at_risk.is_at_risk %}
+    <span class="badge fs-6 px-3 py-2
+          {% if at_risk.level == 'high' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      {% if at_risk.level == 'high' %}High Risk{% else %}Needs Monitoring{% endif %}
+    </span>
+    {% endif %}
   </div>
 </div>
+
+{% if at_risk.is_at_risk %}
+<div class="alert d-flex align-items-start gap-3 mb-4
+            {% if at_risk.level == 'high' %}alert-danger{% else %}alert-warning{% endif %}">
+  <i class="bi bi-activity fs-5 flex-shrink-0 mt-1"></i>
+  <div>
+    <strong class="d-block mb-1">Smart Detection — Wellness Alert</strong>
+    <p class="small mb-2">The system has automatically detected the following concerning patterns:</p>
+    <ul class="small mb-0 ps-3">
+      {% for reason in at_risk.reasons %}
+      <li>{{ reason }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
 
 <div class="row g-3 mb-4">
   <div class="col-md-3"><div class="card text-center p-3">

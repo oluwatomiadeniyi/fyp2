@@ -41,6 +41,53 @@
 </div>
 {% endif %}
 
+<!-- ── Smart: Appointment recommendation banner ─────────────────── -->
+{% if recommendation and recommendation.show %}
+<div class="alert d-flex align-items-start gap-3 mb-4"
+     style="background:#fcebeb;border:1px solid #f09595;color:#a32d2d;">
+  <i class="bi bi-heart-pulse-fill fs-5 flex-shrink-0 mt-1"></i>
+  <div class="flex-grow-1">
+    <strong class="d-block mb-1">
+      {% if recommendation.type == 'mental_health' %}
+        Mental Health Consultation Recommended
+      {% else %}
+        Health Consultation Recommended
+      {% endif %}
+    </strong>
+    {{ recommendation.reason }}
+  </div>
+  <a href="{% url 'book_appointment' %}{% if recommendation.type == 'mental_health' %}?type=mental_health{% endif %}"
+     class="btn btn-sm btn-danger fw-semibold flex-shrink-0">
+    Book Now
+  </a>
+</div>
+{% endif %}
+
+<!-- ── Smart: Wellness trend insights ────────────────────────────── -->
+{% if insights %}
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center gap-2">
+    <i class="bi bi-lightbulb-fill text-warning"></i>
+    <span class="fw-semibold">Your Wellness Insights</span>
+    <span class="badge rounded-pill ms-1"
+          style="background:#e1f5ee;color:#085041;font-size:.7rem;">Smart</span>
+  </div>
+  <div class="card-body p-0">
+    {% for insight in insights %}
+    <div class="d-flex align-items-start gap-3 px-4 py-3
+                {% if not forloop.last %}border-bottom{% endif %}">
+      <i class="bi {{ insight.icon }} mt-1 flex-shrink-0
+         {% if insight.color == 'success' %}text-success
+         {% elif insight.color == 'warning' %}text-warning
+         {% elif insight.color == 'danger'  %}text-danger
+         {% else %}text-info{% endif %}"></i>
+      <span class="small">{{ insight.message }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
 <!-- Stat cards -->
 <div class="row g-3 mb-4">
   <div class="col-6 col-md-3">
